@@ -14,7 +14,8 @@
     "test:privacy": "tsx scripts/test-privacy-leakage.ts",
     "test:hierarchy": "tsx scripts/test-reporting-hierarchy.ts",
     "test:benchmark": "tsx scripts/test-search-performance.ts",
-    "test": "npm run test:auth && npm run test:nav && npm run test:e2e && npm run test:privacy && npm run test:hierarchy && npm run test:benchmark"
+    "test:db": "tsx scripts/verify-database.ts",
+    "test": "npm run test:db && npm run test:auth && npm run test:nav && npm run test:e2e && npm run test:privacy && npm run test:hierarchy && npm run test:benchmark"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
