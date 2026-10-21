@@ -1,0 +1,225 @@
+// Horizon Portal Prisma Schema
+// Aura Workforce by Growmar
+// Database: SQLite (dev.db)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ==========================================
+// 1. Users & Authentication
+// ==========================================
+
+model User {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  name         String
+  passwordHash String    @map("password_hash")
+  role         String    // Admin | HR | Manager | Employee
+  isActive     Boolean   @default(true) @map("is_active")
+  employeeId   String?   @map("employee_id")
+  employee     Employee? @relation(fields: [employeeId], references: [id], onDelete: SetNull)
+
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  @@map("users")
+}
+
+// ==========================================
+// 2. Departments
+// ==========================================
+
+model Department {
+  id          String     @id
+  name        String     @unique
+  code        String?
+  description String?
+  employees   Employee[]
+
+  createdAt   DateTime   @default(now()) @map("created_at")
+  updatedAt   DateTime   @updatedAt @map("updated_at")
+
+  @@map("departments")
+}
+
+// ==========================================
+// 3. Roles (Organizational)
+// ==========================================
+
+model Role {
+  id          String     @id
+  name        String     @unique
+  description String?
+  employees   Employee[]
+
+  createdAt   DateTime   @default(now()) @map("created_at")
+  updatedAt   DateTime   @updatedAt @map("updated_at")
+
+  @@map("roles")
+}
+
+// ==========================================
+// 4. Employees
+// ==========================================
+
+model Employee {
+  id            String         @id
+  firstName     String         @map("first_name")
+  lastName      String         @map("last_name")
+  email         String         @unique
+  phone         String?
+  hireDate      DateTime?      @map("hire_date")
+  salary        Float?
+  status        String         @default("Active")
+
+  departmentId  String?        @map("department_id")
+  department    Department?    @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+
+  roleId        String?        @map("role_id")
+  role          Role?          @relation(fields: [roleId], references: [id], onDelete: SetNull)
+
+  managerId     String?        @map("manager_id")
+  manager       Employee?      @relation("EmployeeManager", fields: [managerId], references: [id], onDelete: SetNull)
+  directReports Employee[]     @relation("EmployeeManager")
+
+  users         User[]
+  payslips      Payslip[]
+  leaveBalances LeaveBalance[]
+  leaveRequests LeaveRequest[]
+
+  createdAt     DateTime       @default(now()) @map("created_at")
+  updatedAt     DateTime       @updatedAt @map("updated_at")
+
+  @@map("employees")
+}
+
+// ==========================================
+// 5. Payroll Runs
+// ==========================================
+
+model PayrollRun {
+  id          String    @id
+  periodStart DateTime  @map("period_start")
+  periodEnd   DateTime  @map("period_end")
+  paymentDate DateTime  @map("payment_date")
+  status      String    @default("Completed")
+  payslips    Payslip[]
+
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  @@map("payroll_runs")
+}
+
+// ==========================================
+// 6. Payslips
+// ==========================================
+
+model Payslip {
+  id           String      @id
+  employeeId   String      @map("employee_id")
+  employee     Employee    @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  payrollRunId String?     @map("payroll_run_id")
+  payrollRun   PayrollRun? @relation(fields: [payrollRunId], references: [id], onDelete: SetNull)
+
+  grossPay     Float       @map("gross_pay")
+  netPay       Float       @map("net_pay")
+  deductions   Float       @default(0)
+  currency     String      @default("USD")
+  payPeriod    String?     @map("pay_period")
+
+  createdAt    DateTime    @default(now()) @map("created_at")
+  updatedAt    DateTime    @updatedAt @map("updated_at")
+
+  @@map("payslips")
+}
+
+// ==========================================
+// 7. Leave Types
+// ==========================================
+
+model LeaveType {
+  id            String         @id
+  name          String         @unique
+  description   String?
+  defaultDays   Int            @default(15) @map("default_days")
+
+  leaveBalances LeaveBalance[]
+  leaveRequests LeaveRequest[]
+
+  createdAt     DateTime       @default(now()) @map("created_at")
+  updatedAt     DateTime       @updatedAt @map("updated_at")
+
+  @@map("leave_types")
+}
+
+// ==========================================
+// 8. Leave Balances
+// ==========================================
+
+model LeaveBalance {
+  id          String    @id @default(cuid())
+  employeeId  String    @map("employee_id")
+  employee    Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  leaveTypeId String    @map("leave_type_id")
+  leaveType   LeaveType @relation(fields: [leaveTypeId], references: [id], onDelete: Cascade)
+
+  balance     Float
+  used        Float     @default(0)
+  year        Int       @default(2026)
+
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  @@unique([employeeId, leaveTypeId, year])
+  @@map("leave_balances")
+}
+
+// ==========================================
+// 9. Leave Requests
+// ==========================================
+
+model LeaveRequest {
+  id          String    @id
+  employeeId  String    @map("employee_id")
+  employee    Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  leaveTypeId String    @map("leave_type_id")
+  leaveType   LeaveType @relation(fields: [leaveTypeId], references: [id], onDelete: Cascade)
+
+  startDate   DateTime  @map("start_date")
+  endDate     DateTime  @map("end_date")
+  days        Float
+  status      String    @default("Pending") // Pending | Approved | Rejected
+  reason      String?
+
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  @@map("leave_requests")
+}
+
+// ==========================================
+// 10. Holidays
+// ==========================================
+
+model Holiday {
+  id          String   @id
+  name        String
+  date        DateTime
+  isRecurring Boolean  @default(false) @map("is_recurring")
+  location    String?
+
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("holidays")
+}

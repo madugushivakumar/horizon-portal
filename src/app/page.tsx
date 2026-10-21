@@ -57,13 +57,37 @@ export default function HomePage() {
       {/* CTA */}
       <div className="flex flex-col sm:flex-row items-center gap-4">
         <Link
-          href="/design"
+          href="/login"
           className="inline-flex items-center gap-2 h-12 px-6 rounded-xl font-semibold text-sm
             bg-[var(--hz-btn-primary-bg)] text-[var(--hz-btn-primary-text)]
             hover:bg-[var(--hz-btn-primary-bg-hover)] active:bg-[var(--hz-btn-primary-bg-active)]
             shadow-[var(--hz-shadow-sm)] hover:shadow-[var(--hz-shadow-md)]
             transition-all duration-150 focus-visible:outline-2 focus-visible:outline-offset-2
             focus-visible:outline-[var(--hz-primary-500)]"
+        >
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+          </svg>
+          Sign In (Demo Users)
+        </Link>
+
+        <Link
+          href="/employees"
+          className="inline-flex items-center gap-2 h-12 px-6 rounded-xl font-semibold text-sm
+            border border-[var(--hz-border-default)] bg-[var(--hz-bg-surface)] text-[var(--hz-text-primary)]
+            hover:bg-[var(--hz-bg-subtle)] transition-all duration-150"
+        >
+          <svg className="w-4 h-4 text-[var(--hz-text-muted)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+          </svg>
+          Employee Directory
+        </Link>
+
+        <Link
+          href="/design"
+          className="inline-flex items-center gap-2 h-12 px-6 rounded-xl font-semibold text-sm
+            border border-[var(--hz-border-default)] bg-[var(--hz-bg-surface)] text-[var(--hz-text-secondary)]
+            hover:bg-[var(--hz-bg-subtle)] transition-all duration-150"
         >
           <svg
             width="18"
@@ -81,7 +105,7 @@ export default function HomePage() {
             <rect x="3" y="14" width="7" height="7" rx="1" />
             <rect x="14" y="14" width="7" height="7" rx="1" />
           </svg>
-          View Design System
+          Design System
         </Link>
       </div>
 
