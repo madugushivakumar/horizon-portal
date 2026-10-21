@@ -5,17 +5,19 @@
  * src/app/employees/page.tsx
  *
  * Displays database-backed employees from GET /api/v1/employees.
- * Includes authenticated user header, role badge, loading/empty/error states,
- * and working logout integration.
+ * Embedded cleanly inside the responsive Horizon AppShell.
+ * Leverages Skeleton, EmptyState, and ErrorState components.
  */
 
 import React, { useEffect, useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { AppShell } from "@/components/layout/AppShell";
+import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { useTheme } from "@/components/ThemeProvider";
+import { Skeleton } from "@/components/ui/skeleton";
+import { EmptyState } from "@/components/ui/empty-state";
+import { ErrorState } from "@/components/ui/error-state";
+import { TopBarUser } from "@/components/layout/TopBar";
 
 interface EmployeeItem {
   id: string;
@@ -29,196 +31,120 @@ interface EmployeeItem {
   manager?: { id: string; firstName: string; lastName: string } | null;
 }
 
-interface CurrentUser {
-  id: string;
-  email: string;
-  name: string;
-  role: string;
-  employeeId?: string | null;
-}
-
 export default function EmployeesPage() {
   const router = useRouter();
-  const { theme, toggleTheme } = useTheme();
 
   const [employees, setEmployees] = useState<EmployeeItem[]>([]);
-  const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
+  const [currentUser, setCurrentUser] = useState<TopBarUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+  const [reloadTrigger, setReloadTrigger] = useState(0);
 
   useEffect(() => {
-    async function loadData() {
-      setIsLoading(true);
-      setError(null);
+    let ignore = false;
 
+    async function fetchDirectory() {
       try {
-        // Fetch current user session
         const meRes = await fetch("/api/v1/auth/me");
         if (meRes.ok) {
           const meData = await meRes.json();
-          setCurrentUser(meData.user);
+          if (!ignore) setCurrentUser(meData.user);
         } else if (meRes.status === 401) {
           router.push("/login?from=/employees");
           return;
         }
 
-        // Fetch employee records
         const empRes = await fetch("/api/v1/employees");
         if (!empRes.ok) {
           throw new Error("Failed to load employee directory.");
         }
         const empData = await empRes.json();
-        setEmployees(empData.data || []);
+        if (!ignore) {
+          setEmployees(empData.data || []);
+        }
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Error loading data");
+        if (!ignore) {
+          setError(err instanceof Error ? err.message : "Error loading data");
+        }
       } finally {
-        setIsLoading(false);
+        if (!ignore) {
+          setIsLoading(false);
+        }
       }
     }
 
-    loadData();
-  }, [router]);
+    fetchDirectory();
 
-  const handleLogout = async () => {
-    setIsLoggingOut(true);
-    try {
-      await fetch("/api/v1/auth/logout", { method: "POST" });
-      router.push("/login");
-      router.refresh();
-    } catch {
-      router.push("/login");
-    } finally {
-      setIsLoggingOut(false);
-    }
-  };
+    return () => {
+      ignore = true;
+    };
+  }, [router, reloadTrigger]);
+
+  function handleRetry() {
+    setIsLoading(true);
+    setError(null);
+    setReloadTrigger((prev) => prev + 1);
+  }
 
   return (
-    <div className="min-h-screen bg-[var(--hz-bg-base)] text-[var(--hz-text-primary)]">
-      {/* Top Navbar */}
-      <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-[var(--hz-border-default)] bg-[var(--hz-bg-surface)] px-6 backdrop-blur-md">
-        <div className="flex items-center gap-3">
-          <Link href="/" className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-tr from-[var(--hz-primary-600)] to-[var(--hz-secondary-500)] text-white font-bold text-xs">
-              HZ
-            </div>
-            <span className="font-semibold text-sm tracking-tight text-[var(--hz-text-primary)]">
-              Horizon Portal
-            </span>
-          </Link>
-          <span className="text-[var(--hz-border-default)]">/</span>
-          <span className="text-xs text-[var(--hz-text-muted)] font-medium">Employee Directory</span>
-        </div>
-
-        <div className="flex items-center gap-3">
-          {/* Theme toggle */}
-          <button
-            onClick={toggleTheme}
-            aria-label="Toggle theme"
-            className="flex h-8 w-8 items-center justify-center rounded-lg border border-[var(--hz-border-default)] bg-[var(--hz-bg-subtle)] text-[var(--hz-text-secondary)] hover:bg-[var(--hz-bg-surface)] transition-colors"
-          >
-            {theme === "dark" ? (
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-              </svg>
-            ) : (
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-              </svg>
-            )}
-          </button>
-
-          <Link href="/design">
-            <Button variant="secondary" size="sm">Design System</Button>
-          </Link>
-
-          {/* Current User Pill */}
-          {currentUser && (
-            <div className="flex items-center gap-2 pl-2 border-l border-[var(--hz-border-default)]">
-              <div className="text-right">
-                <div className="text-xs font-semibold leading-tight text-[var(--hz-text-primary)]">
-                  {currentUser.name}
-                </div>
-                <div className="text-[11px] text-[var(--hz-text-muted)]">
-                  {currentUser.email}
-                </div>
-              </div>
-              <Badge
-                variant={
-                  currentUser.role === "Admin"
-                    ? "danger"
-                    : currentUser.role === "HR"
-                    ? "warning"
-                    : currentUser.role === "Manager"
-                    ? "primary"
-                    : "secondary"
-                }
-                size="sm"
-              >
-                {currentUser.role}
-              </Badge>
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={handleLogout}
-                loading={isLoggingOut}
-                className="ml-2"
-              >
-                Sign Out
-              </Button>
-            </div>
-          )}
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="mx-auto max-w-6xl px-6 py-8">
-        <div className="mb-6 flex items-center justify-between">
+    <AppShell initialUser={currentUser}>
+      <div className="space-y-6">
+        {/* Header Title & Count */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
-            <h1 className="text-xl font-bold tracking-tight text-[var(--hz-text-primary)]">
-              Employee Directory
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[var(--hz-text-primary)]">
+              Workforce Directory
             </h1>
             <p className="mt-1 text-xs text-[var(--hz-text-muted)]">
               Database-backed employee records fetched via GET /api/v1/employees.
             </p>
           </div>
           <Badge variant="primary" size="md">
-            {employees.length} Records
+            {isLoading ? "Loading..." : `${employees.length} Members`}
           </Badge>
         </div>
 
-        {/* Loading State */}
+        {/* Loading State using Skeleton Grid */}
         {isLoading && (
-          <div className="flex flex-col items-center justify-center py-20 text-center">
-            <div className="h-8 w-8 animate-spin rounded-full border-2 border-[var(--hz-primary-500)] border-t-transparent mb-3" />
-            <p className="text-xs text-[var(--hz-text-muted)]">Loading employee directory from database...</p>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {[...Array(6)].map((_, i) => (
+              <div
+                key={i}
+                className="p-5 rounded-2xl border border-[var(--hz-border-default)] bg-[var(--hz-bg-surface)] space-y-4"
+              >
+                <div className="flex items-start justify-between">
+                  <div className="space-y-1.5 w-3/4">
+                    <Skeleton variant="text" width="70%" height="1rem" />
+                    <Skeleton variant="text" width="90%" height="0.75rem" />
+                  </div>
+                  <Skeleton variant="circular" width="1.5rem" height="1.5rem" />
+                </div>
+                <div className="space-y-2 pt-2">
+                  <Skeleton variant="text" width="100%" height="0.75rem" />
+                  <Skeleton variant="text" width="80%" height="0.75rem" />
+                </div>
+              </div>
+            ))}
           </div>
         )}
 
-        {/* Error State */}
+        {/* Error State with Retry Button */}
         {!isLoading && error && (
-          <Card className="border-[var(--hz-semantic-error-border)] bg-[var(--hz-semantic-error-bg)]">
-            <CardHeader>
-              <CardTitle className="text-sm text-[var(--hz-semantic-error-text)]">
-                Unable to load employees
-              </CardTitle>
-              <CardDescription className="text-xs text-[var(--hz-semantic-error-text)]/80">
-                {error}
-              </CardDescription>
-            </CardHeader>
-          </Card>
+          <ErrorState
+            title="Failed to Load Employee Directory"
+            description={error}
+            onRetry={handleRetry}
+            retryLabel="Retry Directory Load"
+          />
         )}
 
         {/* Empty State */}
         {!isLoading && !error && employees.length === 0 && (
-          <Card className="text-center py-12">
-            <CardContent>
-              <p className="text-sm font-medium text-[var(--hz-text-secondary)]">No employee records found</p>
-              <p className="text-xs text-[var(--hz-text-muted)] mt-1">
-                Run the database seed script: npm run db:seed
-              </p>
-            </CardContent>
-          </Card>
+          <EmptyState
+            title="No Employee Records Found"
+            description="The SQLite workforce database currently has no registered employee records."
+          />
         )}
 
         {/* Employees Table Grid */}
@@ -271,7 +197,7 @@ export default function EmployeesPage() {
             ))}
           </div>
         )}
-      </main>
-    </div>
+      </div>
+    </AppShell>
   );
 }

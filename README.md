@@ -314,3 +314,137 @@ Visit [http://localhost:3000/design](http://localhost:3000/design) to inspect th
 - **Card:** Composable Header, Title, Description, Content, Footer, and interactive hover elevation.
 - **Badge:** Default, Primary, Secondary, Success, Warning, Danger, with optional status dot indicators.
 - **Typography & Spacing:** Complete design token scales.
+
+---
+
+## Day 4 — The App Shell & Role-Aware Navigation
+
+### 1. Application Shell Architecture
+The Horizon Portal application shell provides a responsive layout container (`AppShell`) across authenticated routes:
+- **`Sidebar` (`src/components/layout/Sidebar.tsx`):**
+  - **Desktop:** Persistent `w-64` navigation drawer with brand branding and active route indicators.
+  - **Mobile:** Accessible slide-over drawer with backdrop overlay, focus-management, and Escape key dismissal.
+- **`TopBar` (`src/components/layout/TopBar.tsx`):**
+  - Hamburger toggle for mobile screens.
+  - Hierarchical breadcrumb navigation trail.
+  - Light/Dark theme toggle.
+  - Current authenticated user display name, avatar initials, and role badge (`danger` for Admin, `warning` for HR, `primary` for Manager, `secondary` for Employee).
+  - Sign Out button invoking `POST /api/v1/auth/logout` with spinner loading feedback.
+- **`Breadcrumbs` (`src/components/layout/Breadcrumbs.tsx`):**
+  - Renders ancestors as clickable links and marks the current terminal item with `aria-current="page"`.
+- **`AppShell` (`src/components/layout/AppShell.tsx`):**
+  - Zero-layout-shift hydration using structural skeletons while user identity loads.
+
+---
+
+### 2. Role-to-Menu Navigation Matrix
+Navigation items are centrally defined in `src/config/navigation.ts` and filtered strictly by the user's role:
+
+| Menu Item | Path | Permitted Roles | Category |
+|---|---|---|---|
+| **Dashboard** | `/dashboard` | All (Admin, HR, Manager, Employee) | Overview |
+| **Directory** | `/employees` | All (Admin, HR, Manager, Employee) | Overview |
+| **My Leave** | `/leave` | Employee | Self Service |
+| **My Payslips** | `/payslips` | Employee | Self Service |
+| **Team Approvals** | `/approvals` | Manager, Admin | Management / Workforce |
+| **Team Performance**| `/team` | Manager, Admin | Management / Workforce |
+| **Leave Operations**| `/leave-management` | HR, Admin | People Operations |
+| **Payroll Operations**| `/payroll` | HR, Admin | People Operations |
+| **Recruitment** | `/recruitment` | HR, Admin | People Operations |
+| **User Management** | `/admin/users` | Admin | Administration |
+| **System Settings** | `/admin/settings` | Admin | Administration |
+| **Audit Logs** | `/admin/audit` | Admin | Administration |
+
+---
+
+### 3. Presentation vs. Authorization: Server-Side RBAC Enforcement
+> [!IMPORTANT]
+> **Hiding a menu item is not authorization.**
+> Client menus only alter visual presentation. Route protection and sensitive server operations enforce role authorization on the server:
+
+1. **Server Proxy Interception (`src/proxy.ts`):**
+   - Cryptographically verifies the HTTP-only `horizon_session` JWT cookie using `jose`.
+   - Resolves the authenticated user's role from the token payload.
+   - Evaluates `isRouteAllowedForRole(pathname, role)`.
+   - If an unauthorized role enters a restricted URL directly (e.g., an Employee attempting to load `/admin/users` or `/payroll`):
+     - The request is intercepted before rendering.
+     - The user is redirected to `/dashboard?error=unauthorized&denied=<pathname>`.
+     - An accessible dismissible warning alert is displayed on the dashboard.
+   - Unauthorized API requests receive HTTP `403 Forbidden` JSON responses.
+2. **Current User Resolution (`src/lib/auth/server-session.ts`):**
+   - Server components and layouts obtain the database-backed user identity using `getCurrentUser()` directly from secure cookies without network roundtrips.
+
+---
+
+### 4. Reusable State Components
+
+#### A. `Skeleton` (`src/components/ui/skeleton.tsx`)
+- Configurable variants: `"text"`, `"circular"`, `"rectangular"`.
+- Token-aware styling with `animate-pulse`.
+- Includes `motion-reduce:animate-none` for reduced-motion accessibility.
+- Includes `role="status"` and `aria-busy="true"` for screen readers.
+
+#### B. `EmptyState` (`src/components/ui/empty-state.tsx`)
+- Standardized empty view displaying title, explanatory description, custom icon, and action button slot.
+- Fully responsive and styled for light/dark themes.
+
+#### C. `ErrorState` (`src/components/ui/error-state.tsx`)
+- User-friendly error message container.
+- Strictly withholds stack traces, database errors, or sensitive server details.
+- Provides a functional retry button executing the caller's reload callback.
+
+---
+
+### 5. Custom 404 & Error Boundary Pages
+- **`src/app/not-found.tsx`:** Custom 404 page featuring Horizon Portal branding, 404 badge, friendly explanation, and navigation buttons returning the user to `/dashboard` or `/login`.
+- **`src/app/error.tsx`:** App Router error boundary component catching runtime exceptions. Displays a friendly error alert, sanitized incident reference digest, and a "Try Again" `reset()` button.
+
+---
+
+### 6. Loading States & The 3-Second Wait Question
+
+> **Question:** *"A page needs 3 seconds to load. What do you show during the wait, and why?"*
+>
+> **Answer:**
+> We display a **structural skeleton layout** matching the anticipated visual hierarchy of the page.
+>
+> **Why:**
+> 1. **Perceived Performance & Cognitive Ease:** A skeleton informs the user immediately that their request was received and work is in progress, reducing perceived wait time.
+> 2. **Cumulative Layout Shift (CLS) Prevention:** Pre-allocating the dimensional footprint of cards, avatars, headers, and tables prevents abrupt layout shifts when asynchronous content finishes loading.
+> 3. **Accessibility:** Outfitting skeletons with `role="status"` and `aria-busy="true"` informs assistive technologies that content is actively loading, eliminating user uncertainty compared to a blank screen or isolated spinner.
+
+---
+
+### 7. Keyboard Navigation & Accessibility (a11y)
+- **Tab Order:** Logical progression across navigation links, buttons, theme toggles, and shortcuts.
+- **Drawer Focus Management:** When the mobile menu opens, focus is managed inside the drawer. Pressing `Escape` automatically dismisses the drawer and returns focus to the toggle button.
+- **ARIA Semantics:**
+  - Active routes indicate current position via `aria-current="page"`.
+  - Icon-only buttons contain descriptive `aria-label` tags.
+  - Skeletons use `role="status"` and `aria-busy="true"`.
+  - Error banners use `role="alert"`.
+
+---
+
+### 8. Day 4 Verification Commands
+
+```bash
+# 1. Run Day 4 Role-Aware Navigation Test Suite (107 Assertions)
+npx tsx scripts/test-day4-navigation.ts
+
+# 2. Run Live E2E HTTP Verification Suite (20 Assertions)
+npx tsx scripts/test-e2e-http.ts
+
+# 3. Run Day 3 Authentication & Security Test Suite (39 Assertions)
+npm run test:auth
+
+# 4. Run TypeScript Compilation Check
+npx tsc --noEmit
+
+# 5. Run ESLint Code Quality Check
+npm run lint
+
+# 6. Production Next.js Build
+npm run build
+```
+

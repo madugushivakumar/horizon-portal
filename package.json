@@ -8,7 +8,9 @@
     "start": "next start",
     "lint": "eslint",
     "db:seed": "prisma db seed",
-    "test:auth": "tsx scripts/test-auth.ts"
+    "test:auth": "tsx scripts/test-auth.ts",
+    "test:nav": "tsx scripts/test-day4-navigation.ts",
+    "test:e2e": "tsx scripts/test-e2e-http.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
