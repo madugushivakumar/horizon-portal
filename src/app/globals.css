@@ -1,0 +1,376 @@
+/* ============================================================
+   HORIZON DESIGN SYSTEM — globals.css
+   Aura Workforce by Growmar · Horizon Portal
+   
+   Token source: design_tokens.json
+   All hex values come from design_tokens.json. Component files
+   must use only CSS custom properties or Tailwind semantic classes.
+   ============================================================ */
+
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
+@import "tailwindcss";
+
+/* ── Horizon Color Primitives (from design_tokens.json) ────── */
+:root {
+  /* Brand Primary — Indigo */
+  --hz-primary-50:  #eef2ff;
+  --hz-primary-100: #e0e7ff;
+  --hz-primary-200: #c7d2fe;
+  --hz-primary-300: #a5b4fc;
+  --hz-primary-400: #818cf8;
+  --hz-primary-500: #6366f1;
+  --hz-primary-600: #4f46e5;
+  --hz-primary-700: #4338ca;
+  --hz-primary-800: #3730a3;
+  --hz-primary-900: #312e81;
+  --hz-primary-950: #1e1b4b;
+
+  /* Brand Secondary — Emerald */
+  --hz-secondary-50:  #f0fdf4;
+  --hz-secondary-100: #dcfce7;
+  --hz-secondary-200: #bbf7d0;
+  --hz-secondary-300: #86efac;
+  --hz-secondary-400: #4ade80;
+  --hz-secondary-500: #22c55e;
+  --hz-secondary-600: #16a34a;
+  --hz-secondary-700: #15803d;
+  --hz-secondary-800: #166534;
+  --hz-secondary-900: #14532d;
+
+  /* Neutral Palette */
+  --hz-neutral-0:    #ffffff;
+  --hz-neutral-50:   #f8fafc;
+  --hz-neutral-100:  #f1f5f9;
+  --hz-neutral-150:  #e9edf3;
+  --hz-neutral-200:  #e2e8f0;
+  --hz-neutral-300:  #cbd5e1;
+  --hz-neutral-400:  #94a3b8;
+  --hz-neutral-500:  #64748b;
+  --hz-neutral-600:  #475569;
+  --hz-neutral-700:  #334155;
+  --hz-neutral-800:  #1e293b;
+  --hz-neutral-850:  #172033;
+  --hz-neutral-900:  #0f172a;
+  --hz-neutral-950:  #080f1e;
+  --hz-neutral-1000: #000000;
+
+  /* Semantic — Success */
+  --hz-success:          #22c55e;
+  --hz-success-light:    #16a34a;
+  --hz-success-bg:       #f0fdf4;
+  --hz-success-bg-dark:  #052e16;
+  --hz-success-text-dark:#4ade80;
+
+  /* Semantic — Warning */
+  --hz-warning:          #f59e0b;
+  --hz-warning-light:    #d97706;
+  --hz-warning-bg:       #fffbeb;
+  --hz-warning-bg-dark:  #1c1501;
+  --hz-warning-text-dark:#fbbf24;
+
+  /* Semantic — Danger */
+  --hz-danger:           #ef4444;
+  --hz-danger-light:     #dc2626;
+  --hz-danger-bg:        #fef2f2;
+  --hz-danger-bg-dark:   #1c0101;
+  --hz-danger-text-dark: #f87171;
+
+  /* Semantic — Info */
+  --hz-info:             #0ea5e9;
+  --hz-info-light:       #0284c7;
+  --hz-info-bg:          #f0f9ff;
+  --hz-info-bg-dark:     #01111d;
+  --hz-info-text-dark:   #38bdf8;
+
+  /* Shadows */
+  --hz-shadow-sm:           0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --hz-shadow-md:           0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --hz-shadow-lg:           0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --hz-shadow-focus:        0 0 0 3px rgb(99 102 241 / 0.4);
+  --hz-shadow-focus-danger: 0 0 0 3px rgb(239 68 68 / 0.35);
+}
+
+/* ── Light Theme Semantic Aliases ────────────────────────── */
+:root,
+.light {
+  --hz-bg-base:        var(--hz-neutral-50);
+  --hz-bg-surface:     var(--hz-neutral-0);
+  --hz-bg-subtle:      var(--hz-neutral-100);
+  --hz-bg-muted:       var(--hz-neutral-150);
+  --hz-border:         var(--hz-neutral-200);
+  --hz-border-strong:  var(--hz-neutral-300);
+  --hz-text-primary:   var(--hz-neutral-900);
+  --hz-text-secondary: var(--hz-neutral-600);
+  --hz-text-muted:     var(--hz-neutral-400);
+  --hz-text-disabled:  var(--hz-neutral-300);
+  --hz-focus-ring:     var(--hz-primary-500);
+
+  /* Interactive — Primary Button */
+  --hz-btn-primary-bg:       var(--hz-primary-600);
+  --hz-btn-primary-bg-hover: var(--hz-primary-700);
+  --hz-btn-primary-bg-active:var(--hz-primary-800);
+  --hz-btn-primary-text:     var(--hz-neutral-0);
+  --hz-btn-primary-ring:     var(--hz-primary-500);
+
+  /* Interactive — Secondary Button */
+  --hz-btn-secondary-bg:       var(--hz-neutral-0);
+  --hz-btn-secondary-bg-hover: var(--hz-neutral-100);
+  --hz-btn-secondary-bg-active:var(--hz-neutral-150);
+  --hz-btn-secondary-text:     var(--hz-neutral-700);
+  --hz-btn-secondary-border:   var(--hz-neutral-300);
+
+  /* Interactive — Danger Button */
+  --hz-btn-danger-bg:       var(--hz-danger);
+  --hz-btn-danger-bg-hover: var(--hz-danger-light);
+  --hz-btn-danger-bg-active:#b91c1c;
+  --hz-btn-danger-text:     var(--hz-neutral-0);
+
+  /* Input */
+  --hz-input-bg:          var(--hz-neutral-0);
+  --hz-input-border:      var(--hz-neutral-300);
+  --hz-input-border-hover:var(--hz-neutral-400);
+  --hz-input-border-focus:var(--hz-primary-500);
+  --hz-input-text:        var(--hz-neutral-900);
+  --hz-input-placeholder: var(--hz-neutral-400);
+  --hz-input-error-border:var(--hz-danger);
+  --hz-input-error-text:  var(--hz-danger-light);
+  --hz-input-disabled-bg: var(--hz-neutral-100);
+
+  /* Card */
+  --hz-card-bg:     var(--hz-neutral-0);
+  --hz-card-border: var(--hz-neutral-200);
+
+  /* Badge */
+  --hz-badge-default-bg:   var(--hz-neutral-100);
+  --hz-badge-default-text: var(--hz-neutral-700);
+}
+
+/* ── Dark Theme Semantic Aliases ─────────────────────────── */
+.dark {
+  --hz-bg-base:        var(--hz-neutral-900);
+  --hz-bg-surface:     var(--hz-neutral-800);
+  --hz-bg-subtle:      var(--hz-neutral-850);
+  --hz-bg-muted:       var(--hz-neutral-700);
+  --hz-border:         var(--hz-neutral-700);
+  --hz-border-strong:  var(--hz-neutral-600);
+  --hz-text-primary:   var(--hz-neutral-50);
+  --hz-text-secondary: var(--hz-neutral-300);
+  --hz-text-muted:     var(--hz-neutral-500);
+  --hz-text-disabled:  var(--hz-neutral-600);
+  --hz-focus-ring:     var(--hz-primary-400);
+
+  /* Interactive — Primary Button */
+  --hz-btn-primary-bg:       var(--hz-primary-600);
+  --hz-btn-primary-bg-hover: var(--hz-primary-500);
+  --hz-btn-primary-bg-active:var(--hz-primary-700);
+  --hz-btn-primary-text:     var(--hz-neutral-0);
+  --hz-btn-primary-ring:     var(--hz-primary-400);
+
+  /* Interactive — Secondary Button */
+  --hz-btn-secondary-bg:       var(--hz-neutral-800);
+  --hz-btn-secondary-bg-hover: var(--hz-neutral-700);
+  --hz-btn-secondary-bg-active:var(--hz-neutral-850);
+  --hz-btn-secondary-text:     var(--hz-neutral-200);
+  --hz-btn-secondary-border:   var(--hz-neutral-600);
+
+  /* Interactive — Danger Button */
+  --hz-btn-danger-bg:       var(--hz-danger);
+  --hz-btn-danger-bg-hover: #f87171;
+  --hz-btn-danger-bg-active:var(--hz-danger-light);
+  --hz-btn-danger-text:     var(--hz-neutral-0);
+
+  /* Input */
+  --hz-input-bg:          var(--hz-neutral-800);
+  --hz-input-border:      var(--hz-neutral-600);
+  --hz-input-border-hover:var(--hz-neutral-500);
+  --hz-input-border-focus:var(--hz-primary-400);
+  --hz-input-text:        var(--hz-neutral-50);
+  --hz-input-placeholder: var(--hz-neutral-500);
+  --hz-input-error-border:var(--hz-danger-text-dark);
+  --hz-input-error-text:  var(--hz-danger-text-dark);
+  --hz-input-disabled-bg: var(--hz-neutral-850);
+
+  /* Card */
+  --hz-card-bg:     var(--hz-neutral-800);
+  --hz-card-border: var(--hz-neutral-700);
+
+  /* Badge */
+  --hz-badge-default-bg:   var(--hz-neutral-700);
+  --hz-badge-default-text: var(--hz-neutral-200);
+}
+
+/* ── Tailwind v4 Theme Extension ─────────────────────────── */
+@theme inline {
+  /* Map Horizon tokens into Tailwind utility names */
+  --color-hz-primary-50:  var(--hz-primary-50);
+  --color-hz-primary-100: var(--hz-primary-100);
+  --color-hz-primary-200: var(--hz-primary-200);
+  --color-hz-primary-300: var(--hz-primary-300);
+  --color-hz-primary-400: var(--hz-primary-400);
+  --color-hz-primary-500: var(--hz-primary-500);
+  --color-hz-primary-600: var(--hz-primary-600);
+  --color-hz-primary-700: var(--hz-primary-700);
+  --color-hz-primary-800: var(--hz-primary-800);
+  --color-hz-primary-900: var(--hz-primary-900);
+  --color-hz-primary-950: var(--hz-primary-950);
+
+  --color-hz-secondary-50:  var(--hz-secondary-50);
+  --color-hz-secondary-100: var(--hz-secondary-100);
+  --color-hz-secondary-500: var(--hz-secondary-500);
+  --color-hz-secondary-600: var(--hz-secondary-600);
+  --color-hz-secondary-700: var(--hz-secondary-700);
+
+  --color-hz-neutral-0:    var(--hz-neutral-0);
+  --color-hz-neutral-50:   var(--hz-neutral-50);
+  --color-hz-neutral-100:  var(--hz-neutral-100);
+  --color-hz-neutral-150:  var(--hz-neutral-150);
+  --color-hz-neutral-200:  var(--hz-neutral-200);
+  --color-hz-neutral-300:  var(--hz-neutral-300);
+  --color-hz-neutral-400:  var(--hz-neutral-400);
+  --color-hz-neutral-500:  var(--hz-neutral-500);
+  --color-hz-neutral-600:  var(--hz-neutral-600);
+  --color-hz-neutral-700:  var(--hz-neutral-700);
+  --color-hz-neutral-800:  var(--hz-neutral-800);
+  --color-hz-neutral-850:  var(--hz-neutral-850);
+  --color-hz-neutral-900:  var(--hz-neutral-900);
+  --color-hz-neutral-950:  var(--hz-neutral-950);
+
+  --color-hz-success:      var(--hz-success);
+  --color-hz-warning:      var(--hz-warning);
+  --color-hz-danger:       var(--hz-danger);
+  --color-hz-info:         var(--hz-info);
+
+  /* Semantic theme-aware aliases */
+  --color-hz-bg-base:        var(--hz-bg-base);
+  --color-hz-bg-surface:     var(--hz-bg-surface);
+  --color-hz-bg-subtle:      var(--hz-bg-subtle);
+  --color-hz-bg-muted:       var(--hz-bg-muted);
+  --color-hz-border:         var(--hz-border);
+  --color-hz-border-strong:  var(--hz-border-strong);
+  --color-hz-text-primary:   var(--hz-text-primary);
+  --color-hz-text-secondary: var(--hz-text-secondary);
+  --color-hz-text-muted:     var(--hz-text-muted);
+  --color-hz-text-disabled:  var(--hz-text-disabled);
+
+  /* Font families */
+  --font-sans: "Inter", var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+}
+
+/* ── Base Styles ──────────────────────────────────────────── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--hz-bg-base);
+  color: var(--hz-text-primary);
+  font-family: "Inter", var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  font-size: 1rem;
+  line-height: 1.5;
+  min-height: 100dvh;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* ── Focus Visible ────────────────────────────────────────── */
+:focus-visible {
+  outline: 2px solid var(--hz-focus-ring);
+  outline-offset: 2px;
+  border-radius: 0.25rem;
+}
+
+/* ── Scrollbar ────────────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--hz-bg-subtle);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--hz-border-strong);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--hz-text-muted);
+}
+
+/* ── Keyframe Animations ─────────────────────────────────── */
+@keyframes hz-spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes hz-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.5; }
+}
+
+@keyframes hz-fade-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes hz-slide-in {
+  from { opacity: 0; transform: translateX(-8px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes hz-shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* ── Animation Utilities ─────────────────────────────────── */
+.hz-animate-spin    { animation: hz-spin 0.8s linear infinite; }
+.hz-animate-pulse   { animation: hz-pulse 2s ease-in-out infinite; }
+.hz-animate-fade-in { animation: hz-fade-in 0.25s ease-out both; }
+.hz-animate-slide-in{ animation: hz-slide-in 0.25s ease-out both; }
+
+/* ── Gradient Utilities ───────────────────────────────────── */
+.hz-gradient-primary {
+  background: linear-gradient(135deg, var(--hz-primary-600) 0%, var(--hz-primary-800) 100%);
+}
+
+.hz-gradient-hero {
+  background: linear-gradient(
+    135deg,
+    var(--hz-primary-950) 0%,
+    var(--hz-primary-900) 35%,
+    var(--hz-primary-800) 65%,
+    var(--hz-primary-700) 100%
+  );
+}
+
+.hz-gradient-surface {
+  background: linear-gradient(
+    180deg,
+    var(--hz-bg-surface) 0%,
+    var(--hz-bg-subtle) 100%
+  );
+}
+
+/* ── Glassmorphism ────────────────────────────────────────── */
+.hz-glass {
+  backdrop-filter: blur(12px) saturate(180%);
+  -webkit-backdrop-filter: blur(12px) saturate(180%);
+  background: color-mix(in srgb, var(--hz-bg-surface) 80%, transparent);
+  border: 1px solid color-mix(in srgb, var(--hz-border) 60%, transparent);
+}
+
+/* ── Selection ────────────────────────────────────────────── */
+::selection {
+  background-color: var(--hz-primary-200);
+  color: var(--hz-primary-900);
+}
+.dark ::selection {
+  background-color: var(--hz-primary-800);
+  color: var(--hz-primary-100);
+}
