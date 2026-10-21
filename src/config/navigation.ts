@@ -45,6 +45,14 @@ export const NAVIGATION_REGISTRY: NavItem[] = [
     roles: ["Admin", "HR", "Manager", "Employee"],
     description: "Workforce member directory and organizational structure",
   },
+  {
+    id: "people",
+    title: "People Directory",
+    href: "/people",
+    icon: "users",
+    roles: ["Admin", "HR", "Manager", "Employee"],
+    description: "Workforce member directory and profile viewer",
+  },
 
   // ── Employee Specific ──────────────────────────────────────────
   {

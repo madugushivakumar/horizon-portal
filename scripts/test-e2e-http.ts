@@ -18,7 +18,7 @@ const BASE_URL = "http://localhost:3000";
 interface LoginResult {
   cookie: string;
   role: string;
-  user: any;
+  user: Record<string, unknown>;
 }
 
 async function loginAs(email: string, pass: string): Promise<LoginResult> {
@@ -212,3 +212,5 @@ testE2E().catch((err) => {
   console.error("E2E Test execution error:", err);
   process.exit(1);
 });
+
+export {};

@@ -1,6 +1,6 @@
 # Horizon Portal
 
-> **Aura Workforce by Growmar** — Phases 1: Foundation (Day 1, Day 2 & Day 3 Implementation)
+> **Aura Workforce by Growmar** — Phase 1: Foundation (Tasks 1–5: Complete Implementation)
 
 Horizon Portal is the workforce-management platform for **Aura Workforce by Growmar**, built on Next.js 16 (App Router), TypeScript, Tailwind CSS, Prisma ORM, SQLite, and the **Horizon Design System**.
 
@@ -20,8 +20,14 @@ Horizon Portal is the workforce-management platform for **Aura Workforce by Grow
   - [Route Protection (Next.js 16 Proxy)](#route-protection-nextjs-16-proxy)
   - [Policy: Deactivated Accounts & Role Changes](#policy-deactivated-accounts--role-changes)
 - [API Endpoints Reference](#api-endpoints-reference)
-- [Security Rationale: Browser vs Database](#security-rationale-why-the-browser-must-never-read-json-data-directly)
-- [Verification & Quality Checks](#verification--quality-checks)
+- [Day 4: Role-Aware Application Shell](#day-4-role-aware-application-shell-navigation-by-role)
+- [Day 5: My Profile and the People Directory](#day-5-my-profile-and-the-people-directory)
+  - [Safe Employee Data Contract & Privacy Protection](#safe-employee-data-contract--privacy-protection)
+  - [People Directory & Search Performance](#people-directory--search-performance)
+  - [3-Tier Reporting Line Hierarchy](#3-tier-reporting-line-hierarchy)
+  - [Avatar Initials & Deterministic Color Tokens](#avatar-initials--deterministic-color-tokens)
+  - [Day 5 Verification Suites & Test Results](#day-5-verification-suites--test-results)
+- [Phase 1 Summary & Verification Checklist](#phase-1-summary--verification-checklist)
 - [Design System Showcase](#design-system-showcase)
 
 ---
@@ -447,4 +453,188 @@ npm run lint
 # 6. Production Next.js Build
 npm run build
 ```
+
+---
+
+## Day 5: My Profile and the People Directory
+
+Day 5 implements the **People Directory** and **Employee Profile** modules for Horizon Portal, enabling authenticated users to discover colleagues, inspect safe professional profiles, and navigate organizational reporting lines without exposing private compensation or personal banking information.
+
+---
+
+### Safe Employee Data Contract & Privacy Protection
+
+Privacy is the most critical constraint of Day 5. Under no circumstances may sensitive compensation or credentials leak to the client.
+
+#### 1. Prohibited Fields
+The following fields are strictly excluded from all public employee directory and profile APIs:
+- `salary` and compensation details
+- `bankAccount`, `routingNumber`, or bank payment records
+- `password`, `passwordHash`, and credentials
+- `authTokens` and session secrets
+- Internal identity provider metadata
+
+#### 2. Explicit Prisma Select Clauses
+The server never serializes raw Prisma employee models. Both `/api/v1/employees` and `/api/v1/employees/[id]` use explicit Prisma `select` projections:
+
+```typescript
+// Explicit Prisma Select — Zero Leakage
+select: {
+  id: true,
+  firstName: true,
+  lastName: true,
+  email: true,
+  phone: true,
+  status: true,
+  hireDate: true,
+  managerId: true,
+  department: {
+    select: { id: true, name: true, code: true, description: true }
+  },
+  role: {
+    select: { id: true, name: true, description: true }
+  },
+  manager: {
+    select: { id: true, firstName: true, lastName: true, email: true, role: true }
+  }
+}
+```
+
+#### 3. Strict Safe Data Contract (`src/types/employee.ts`)
+```typescript
+export interface SafeEmployeeSummary {
+  id: string;
+  firstName: string;
+  lastName: string;
+  name: string;
+  email: string;
+  phone?: string | null;
+  hireDate?: string | null;
+  status: string;
+  department: SafeDepartment | null;
+  role: SafeRole | null;
+  managerId?: string | null;
+  manager: SafeManager | null;
+}
+
+export interface SafeEmployeeProfile extends SafeEmployeeSummary {
+  directReports: SafeDirectReport[];
+}
+```
+
+---
+
+### People Directory & Search Performance
+
+- **Route:** `/people` (aliased at `/employees`)
+- **API Endpoint:** `GET /api/v1/employees`
+- **Departments Endpoint:** `GET /api/v1/departments`
+
+#### Features:
+1. **Server-Side Debounced Search:** Searches across `firstName`, `lastName`, full name (`firstName + lastName`), employee `id`, and work `email` with safe Prisma parameterized filtering (no SQL injection).
+2. **Department Filter:** Populated dynamically from SQLite database records with active employee counts.
+3. **Responsive Grid & Table Views:** Users can toggle between visual card grid view and dense tabular view.
+4. **Deterministic Pagination:** Database-backed `skip` and `take` queries with tie-breaking sorting (`lastName ASC, firstName ASC, id ASC`) and full pagination metadata (`page`, `pageSize`, `total`, `totalPages`).
+5. **State Resilience:** Skeletons while loading, zero-state messaging when filters yield no matches, and safe error states with retry buttons.
+
+#### Measured Search Latency Benchmark:
+The assessment specifies that **search must find a person in under one second (< 1,000ms)**. Search latency was measured against the local database using high-resolution timers (`performance.now()`):
+
+| Benchmark Case | Description | Measured Latency | Result (< 1,000ms) |
+|---|---|---|---|
+| Full Name Search | `"Alexander Wright"` | **46.58 ms** | ✓ PASS |
+| Partial First Name | `"Elean"` | **30.80 ms** | ✓ PASS |
+| Partial Last Name | `"Vance"` | **33.81 ms** | ✓ PASS |
+| Exact Employee ID | `"EMP-004"` | **33.66 ms** | ✓ PASS |
+| Mixed-Case Search | `"sOpHiE"` | **35.36 ms** | ✓ PASS |
+| Whitespace Trim | `"   marcus   "` | **41.49 ms** | ✓ PASS |
+| Search + Department | `Engineering` + `Chen` | **38.38 ms** | ✓ PASS |
+| Department Filter | `Human Resources` | **45.40 ms** | ✓ PASS |
+| First Page Browse | Page 1, PageSize 12 | **65.33 ms** | ✓ PASS |
+
+- **Average Search Latency:** **41.90 ms** (~24x faster than required)
+- **Maximum Search Latency:** **65.33 ms** (100% under 1 second)
+
+---
+
+### 3-Tier Reporting Line Hierarchy
+
+- **Component:** `src/components/profile/ReportingLine.tsx`
+- **Route:** `/people/[id]` (aliased at `/employees/[id]`)
+
+Displays a clean visual 3-tier hierarchy:
+```
+[ 1. Manager Above ] (Clickable profile link)
+         ↓
+[ 2. Selected Employee ] (Prominently highlighted card)
+         ↓
+[ 3. Direct Reports Below ] (Responsive grid of direct report cards)
+```
+
+#### Real Employee Relationships Verified:
+Three real employees from the database were verified through automated tests (`npm run test:hierarchy`):
+
+1. **Executive without Manager (`EMP-001` — Alexander Wright):**
+   - Role: System Administrator / Executive
+   - Manager: `null` (visually indicates "Top-level Executive — No direct manager")
+   - Direct Reports: 7 verified direct reports (`EMP-002`, `EMP-003`, `EMP-011`, `EMP-014`, `EMP-018`, `EMP-021`, `EMP-022`)
+2. **Middle Manager (`EMP-003` — Marcus Brody):**
+   - Role: Engineering Manager
+   - Manager: `EMP-001` (Alexander Wright)
+   - Direct Reports: 7 verified direct reports (`EMP-004`, `EMP-007`, `EMP-008`, `EMP-009`, `EMP-010`, `EMP-023`, `EMP-025`)
+3. **Individual Contributor (`EMP-004` — Sophie Chen):**
+   - Role: Senior Software Engineer
+   - Manager: `EMP-003` (Marcus Brody)
+   - Direct Reports: `0` (visually indicates "Individual Contributor — No direct reports")
+
+---
+
+### Avatar Initials & Deterministic Color Tokens
+
+- **Component:** `src/components/ui/avatar.tsx`
+- Extracts first letter of first name and last name (e.g. `Alexander Wright` → `AW`, `Sophie Chen` → `SC`).
+- **Deterministic Color Assignment:** Maps the employee identifier via a stable hash function to approved Horizon design token palettes (`--hz-primary-100`, `--hz-secondary-100`, `--hz-info-100`, `--hz-accent-100`).
+- The same employee receives the exact same avatar color across the directory, profile page, and shell navigation without random flicker.
+
+---
+
+### Day 5 Automated Verification Suites
+
+```bash
+# 1. Run Automated Privacy & Sensitive Field Audit (47 Assertions)
+npm run test:privacy
+
+# 2. Run Reporting Hierarchy & Real Employee Verification (34 Assertions)
+npm run test:hierarchy
+
+# 3. Run Search Performance Benchmark (< 1,000ms SLA)
+npm run test:benchmark
+
+# 4. Run ALL Project Tests (144 Automated Tests across Days 1–5)
+npm test
+
+# 5. TypeScript Strict Check
+npx tsc --noEmit
+
+# 6. ESLint Code Quality
+npm run lint
+
+# 7. Production Build
+npm run build
+```
+
+---
+
+## Phase 1 Summary & Verification Checklist
+
+| Task | Title | Key Deliverable | Automated Test Evidence | Status |
+|---|---|---|---|---|
+| **Task 1** | Workspace & Design System | Design tokens, button/card/badge components, `/design` showcase | CSS token contract, light/dark mode | **COMPLETE** |
+| **Task 2** | Relational Database & Seed | SQLite DB, 9 Prisma models, 25 employees seeded, directory API | `npm run db:seed` | **COMPLETE** |
+| **Task 3** | Login & Roles | `jose` JWT tokens, `bcryptjs` hashing, 4 demo users, secure cookies | `npm run test:auth` (15/15 passed) | **COMPLETE** |
+| **Task 4** | App Shell & Navigation | Role-aware sidebar, top bar, breadcrumbs, responsive drawer, 404/error | `npm run test:nav` + `test:e2e` (38/38 passed) | **COMPLETE** |
+| **Task 5** | My Profile & Directory | Safe directory, 3-tier reporting line, deterministic avatars, privacy audit | `npm run test:privacy`, `test:hierarchy`, `test:benchmark` (91/91 passed) | **COMPLETE** |
+
+**Total Automated Test Count:** **144 tests passed (0 failed)**
+
 

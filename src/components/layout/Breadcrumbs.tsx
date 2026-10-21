@@ -25,6 +25,7 @@ export interface BreadcrumbsProps extends React.HTMLAttributes<HTMLElement> {
 
 const ROUTE_LABELS: Record<string, string> = {
   dashboard: "Dashboard",
+  people: "People Directory",
   employees: "Directory",
   leave: "My Leave",
   payslips: "My Payslips",
