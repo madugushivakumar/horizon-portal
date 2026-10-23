@@ -25,10 +25,14 @@ export interface AppShellProps {
 
 export const AppShell: React.FC<AppShellProps> = ({ children, initialUser }) => {
   const router = useRouter();
-  const [user, setUser] = useState<TopBarUser | null>(initialUser ?? null);
-  const [isLoading, setIsLoading] = useState<boolean>(!initialUser);
+  const [fetchedUser, setFetchedUser] = useState<TopBarUser | null>(null);
+  const [isFetching, setIsFetching] = useState<boolean>(!initialUser);
   const [isMobileOpen, setIsMobileOpen] = useState<boolean>(false);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
+
+  // Derive active user and loading state without cascading setState effects
+  const user = initialUser ?? fetchedUser;
+  const isLoading = !user && isFetching;
 
   // If initialUser was not passed from server layout, fetch from /api/v1/auth/me
   useEffect(() => {
@@ -51,7 +55,7 @@ export const AppShell: React.FC<AppShellProps> = ({ children, initialUser }) => 
         const data = await res.json();
         if (isMounted) {
           if (data.success && data.user) {
-            setUser(data.user);
+            setFetchedUser(data.user);
           } else {
             router.push("/login");
           }
@@ -62,7 +66,7 @@ export const AppShell: React.FC<AppShellProps> = ({ children, initialUser }) => 
         }
       } finally {
         if (isMounted) {
-          setIsLoading(false);
+          setIsFetching(false);
         }
       }
     }

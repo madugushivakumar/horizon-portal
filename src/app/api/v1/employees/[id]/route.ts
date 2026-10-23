@@ -136,6 +136,15 @@ export async function GET(request: NextRequest, context: RouteContext) {
 
     return NextResponse.json({ data: safeProfile }, { status: 200 });
   } catch (error) {
+    if (
+      typeof error === "object" &&
+      error !== null &&
+      "digest" in error &&
+      typeof (error as { digest?: unknown }).digest === "string" &&
+      (error as { digest: string }).digest.startsWith("NEXT_")
+    ) {
+      throw error;
+    }
     console.error("Employee profile query error:", error);
     return NextResponse.json(
       { error: "Internal server error retrieving employee profile." },
