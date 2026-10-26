@@ -36,14 +36,19 @@ model User {
 // ==========================================
 
 model Department {
-  id          String     @id
-  name        String     @unique
-  code        String?
-  description String?
-  employees   Employee[]
+  id               String            @id
+  name             String            @unique
+  code             String?
+  costCenter       String?           @map("cost_center")
+  description      String?
+  employees        Employee[]
+  roles            Role[]
+  teams            Team[]
+  expenses         Expense[]
+  aiAttritionRisks AiAttritionRisk[]
 
-  createdAt   DateTime   @default(now()) @map("created_at")
-  updatedAt   DateTime   @updatedAt @map("updated_at")
+  createdAt        DateTime          @default(now()) @map("created_at")
+  updatedAt        DateTime          @updatedAt @map("updated_at")
 
   @@map("departments")
 }
@@ -53,14 +58,20 @@ model Department {
 // ==========================================
 
 model Role {
-  id          String     @id
-  name        String     @unique
-  description String?
-  employees   Employee[]
+  id           String      @id
+  name         String      @unique
+  roleTitle    String?     @map("role_title")
+  level        Int?
+  grade        String?
+  description  String?
+  departmentId String?     @map("department_id")
+  department   Department? @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+  employees    Employee[]
 
-  createdAt   DateTime   @default(now()) @map("created_at")
-  updatedAt   DateTime   @updatedAt @map("updated_at")
+  createdAt    DateTime    @default(now()) @map("created_at")
+  updatedAt    DateTime    @updatedAt @map("updated_at")
 
+  @@index([departmentId])
   @@map("roles")
 }
 
@@ -69,33 +80,46 @@ model Role {
 // ==========================================
 
 model Employee {
-  id            String         @id
-  firstName     String         @map("first_name")
-  lastName      String         @map("last_name")
-  email         String         @unique
-  phone         String?
-  hireDate      DateTime?      @map("hire_date")
-  salary        Float?
-  status        String         @default("Active")
+  id                String              @id
+  fullName          String?             @map("full_name")
+  firstName         String              @map("first_name")
+  lastName          String              @map("last_name")
+  email             String              @unique
+  workEmail         String?             @map("work_email")
+  phone             String?
+  hireDate          DateTime?           @map("hire_date")
+  salary            Float?
+  status            String              @default("Active")
+  workLocation      String?             @map("work_location")
+  workMode          String?             @map("work_mode")
+  employmentType    String?             @map("employment_type")
 
-  departmentId  String?        @map("department_id")
-  department    Department?    @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+  departmentId      String?             @map("department_id")
+  department        Department?         @relation(fields: [departmentId], references: [id], onDelete: SetNull)
 
-  roleId        String?        @map("role_id")
-  role          Role?          @relation(fields: [roleId], references: [id], onDelete: SetNull)
+  roleId            String?             @map("role_id")
+  role              Role?               @relation(fields: [roleId], references: [id], onDelete: SetNull)
 
-  managerId     String?        @map("manager_id")
-  manager       Employee?      @relation("EmployeeManager", fields: [managerId], references: [id], onDelete: SetNull)
-  directReports Employee[]     @relation("EmployeeManager")
+  managerId         String?             @map("manager_id")
+  manager           Employee?           @relation("EmployeeManager", fields: [managerId], references: [id], onDelete: SetNull)
+  directReports     Employee[]          @relation("EmployeeManager")
 
-  users         User[]
-  payslips      Payslip[]
-  leaveBalances LeaveBalance[]
-  leaveRequests LeaveRequest[]
+  users             User[]
+  payslips          Payslip[]
+  leaveBalance      LeaveBalance?
+  leaveRequests     LeaveRequest[]
+  attendanceRecords AttendanceMonthly[]
+  teamsLed          Team[]              @relation("TeamLead")
+  expensesSubmitted Expense[]           @relation("ExpenseSubmitter")
+  expensesApproved  Expense[]           @relation("ExpenseApprover")
+  aiAttritionRisks  AiAttritionRisk[]
 
-  createdAt     DateTime       @default(now()) @map("created_at")
-  updatedAt     DateTime       @updatedAt @map("updated_at")
+  createdAt         DateTime            @default(now()) @map("created_at")
+  updatedAt         DateTime            @updatedAt @map("updated_at")
 
+  @@index([departmentId])
+  @@index([roleId])
+  @@index([managerId])
   @@map("employees")
 }
 
@@ -104,15 +128,19 @@ model Employee {
 // ==========================================
 
 model PayrollRun {
-  id          String    @id
-  periodStart DateTime  @map("period_start")
-  periodEnd   DateTime  @map("period_end")
-  paymentDate DateTime  @map("payment_date")
-  status      String    @default("Completed")
-  payslips    Payslip[]
+  id            String    @id
+  periodStart   DateTime  @map("period_start")
+  periodEnd     DateTime  @map("period_end")
+  paymentDate   DateTime? @map("payment_date")
+  payDate       DateTime? @map("pay_date")
+  employeesPaid Int?      @map("employees_paid")
+  totalGross    Float?    @map("total_gross")
+  totalNet      Float?    @map("total_net")
+  status        String    @default("Completed")
+  payslips      Payslip[]
 
-  createdAt   DateTime  @default(now()) @map("created_at")
-  updatedAt   DateTime  @updatedAt @map("updated_at")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
 
   @@map("payroll_runs")
 }
@@ -122,22 +150,42 @@ model PayrollRun {
 // ==========================================
 
 model Payslip {
-  id           String      @id
-  employeeId   String      @map("employee_id")
-  employee     Employee    @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  id               String      @id
+  employeeId       String      @map("employee_id")
+  employee         Employee    @relation(fields: [employeeId], references: [id], onDelete: Cascade)
 
-  payrollRunId String?     @map("payroll_run_id")
-  payrollRun   PayrollRun? @relation(fields: [payrollRunId], references: [id], onDelete: SetNull)
+  payrollRunId     String?     @map("payroll_run_id")
+  payrollRun       PayrollRun? @relation(fields: [payrollRunId], references: [id], onDelete: SetNull)
 
-  grossPay     Float       @map("gross_pay")
-  netPay       Float       @map("net_pay")
-  deductions   Float       @default(0)
-  currency     String      @default("USD")
-  payPeriod    String?     @map("pay_period")
+  periodStart      DateTime?   @map("period_start")
+  periodEnd        DateTime?   @map("period_end")
+  calendarDays     Int?        @map("calendar_days")
+  lopDays          Float?      @map("lop_days")
+  payableDays      Float?      @map("payable_days")
+  basic            Float?
+  hra              Float?
+  conveyance       Float?
+  medical          Float?
+  specialAllowance Float?      @map("special_allowance")
+  overtimePay      Float?      @map("overtime_pay")
+  variablePay      Float?      @map("variable_pay")
+  grossPay         Float       @map("gross_pay")
+  pfEmployee       Float?      @map("pf_employee")
+  esiEmployee      Float?      @map("esi_employee")
+  professionalTax  Float?      @map("professional_tax")
+  tds              Float?
+  otherDeductions  Float?      @map("other_deductions")
+  totalDeductions  Float?      @map("total_deductions")
+  netPay           Float       @map("net_pay")
+  deductions       Float       @default(0)
+  currency         String      @default("INR")
+  payPeriod        String?     @map("pay_period")
 
-  createdAt    DateTime    @default(now()) @map("created_at")
-  updatedAt    DateTime    @updatedAt @map("updated_at")
+  createdAt        DateTime    @default(now()) @map("created_at")
+  updatedAt        DateTime    @updatedAt @map("updated_at")
 
+  @@index([employeeId])
+  @@index([payrollRunId])
   @@map("payslips")
 }
 
@@ -146,16 +194,23 @@ model Payslip {
 // ==========================================
 
 model LeaveType {
-  id            String         @id
-  name          String         @unique
-  description   String?
-  defaultDays   Int            @default(15) @map("default_days")
+  id                  String         @id
+  code                String?        @unique @map("leave_type_code")
+  name                String         @unique
+  leaveTypeName       String?        @map("leave_type_name")
+  payType             String?        @map("pay_type")
+  annualQuotaDays     Int?           @map("annual_quota_days")
+  proratedForJoiners  String?        @map("prorated_for_joiners")
+  carryForwardAllowed String?        @map("carry_forward_allowed")
+  maxCarryForwardDays Int?           @map("max_carry_forward_days")
+  policyNote          String?        @map("policy_note")
+  description         String?
+  defaultDays         Int            @default(15) @map("default_days")
 
-  leaveBalances LeaveBalance[]
-  leaveRequests LeaveRequest[]
+  leaveRequests       LeaveRequest[]
 
-  createdAt     DateTime       @default(now()) @map("created_at")
-  updatedAt     DateTime       @updatedAt @map("updated_at")
+  createdAt           DateTime       @default(now()) @map("created_at")
+  updatedAt           DateTime       @updatedAt @map("updated_at")
 
   @@map("leave_types")
 }
@@ -165,21 +220,29 @@ model LeaveType {
 // ==========================================
 
 model LeaveBalance {
-  id          String    @id @default(cuid())
-  employeeId  String    @map("employee_id")
-  employee    Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  id             String    @id
+  employeeId     String    @unique @map("employee_id")
+  employee       Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
 
-  leaveTypeId String    @map("leave_type_id")
-  leaveType   LeaveType @relation(fields: [leaveTypeId], references: [id], onDelete: Cascade)
+  asOfDate       DateTime  @map("as_of_date")
+  financialYear  String    @map("financial_year")
+  clEntitlement  Float     @default(0) @map("cl_entitlement")
+  clUsed         Float     @default(0) @map("cl_used")
+  clBalance      Float     @default(0) @map("cl_balance")
+  slEntitlement  Float     @default(0) @map("sl_entitlement")
+  slUsed         Float     @default(0) @map("sl_used")
+  slBalance      Float     @default(0) @map("sl_balance")
+  elUsedFy       Float     @default(0) @map("el_used_fy")
+  elBalance      Float     @default(0) @map("el_balance")
+  pendingDays    Float     @default(0) @map("pending_days")
 
-  balance     Float
-  used        Float     @default(0)
-  year        Int       @default(2026)
+  balance        Float?
+  used           Float?    @default(0)
+  year           Int?      @default(2026)
 
-  createdAt   DateTime  @default(now()) @map("created_at")
-  updatedAt   DateTime  @updatedAt @map("updated_at")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
 
-  @@unique([employeeId, leaveTypeId, year])
   @@map("leave_balances")
 }
 
@@ -188,22 +251,28 @@ model LeaveBalance {
 // ==========================================
 
 model LeaveRequest {
-  id          String    @id
-  employeeId  String    @map("employee_id")
-  employee    Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  id            String     @id
+  employeeId    String     @map("employee_id")
+  employee      Employee   @relation(fields: [employeeId], references: [id], onDelete: Cascade)
 
-  leaveTypeId String    @map("leave_type_id")
-  leaveType   LeaveType @relation(fields: [leaveTypeId], references: [id], onDelete: Cascade)
+  leaveTypeCode String?    @map("leave_type_code")
+  leaveTypeId   String?    @map("leave_type_id")
+  leaveType     LeaveType? @relation(fields: [leaveTypeId], references: [id], onDelete: SetNull)
 
-  startDate   DateTime  @map("start_date")
-  endDate     DateTime  @map("end_date")
-  days        Float
-  status      String    @default("Pending") // Pending | Approved | Rejected
-  reason      String?
+  startDate     DateTime   @map("start_date")
+  endDate       DateTime   @map("end_date")
+  days          Float
+  status        String     @default("Pending") // Pending | Approved | Rejected
+  reason        String?
+  appliedOn     DateTime?  @map("applied_on")
+  approverId    String?    @map("approver_id")
+  decidedOn     DateTime?  @map("decided_on")
 
-  createdAt   DateTime  @default(now()) @map("created_at")
-  updatedAt   DateTime  @updatedAt @map("updated_at")
+  createdAt     DateTime   @default(now()) @map("created_at")
+  updatedAt     DateTime   @updatedAt @map("updated_at")
 
+  @@index([employeeId])
+  @@index([approverId])
   @@map("leave_requests")
 }
 
@@ -212,14 +281,352 @@ model LeaveRequest {
 // ==========================================
 
 model Holiday {
-  id          String   @id
-  name        String
-  date        DateTime
-  isRecurring Boolean  @default(false) @map("is_recurring")
-  location    String?
+  id             String   @id
+  name           String
+  date           DateTime
+  holidayDate    String?  @unique @map("holiday_date")
+  holidayName    String?  @map("holiday_name")
+  holidayType    String?  @map("holiday_type")
+  weekday        String?
+  fallsOnWeekend String?  @map("falls_on_weekend")
+  calendarNote   String?  @map("calendar_note")
+  isRecurring    Boolean  @default(false) @map("is_recurring")
+  location       String?
 
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
 
   @@map("holidays")
+}
+
+// ==========================================
+// 11. Monthly Attendance
+// ==========================================
+
+model AttendanceMonthly {
+  id                String   @id @default(cuid())
+  employeeId        String   @map("employee_id")
+  employee          Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  periodEndDate     DateTime @map("period_end_date")
+  scheduledDays     Float    @map("scheduled_days")
+  presentDays       Float    @map("present_days")
+  wfhDays           Float    @map("wfh_days")
+  paidLeaveDays     Float    @map("paid_leave_days")
+  unpaidAbsenceDays Float    @map("unpaid_absence_days")
+  lateArrivals      Int      @map("late_arrivals")
+  avgHoursWorked    Float    @map("avg_hours_worked")
+  overtimeHours     Float    @map("overtime_hours")
+  attendanceRate    Float    @map("attendance_rate")
+
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  @@unique([employeeId, periodEndDate])
+  @@index([employeeId])
+  @@map("attendance_monthly")
+}
+
+// ==========================================
+// 12. Teams
+// ==========================================
+
+model Team {
+  id                 String     @id
+  teamName           String     @map("team_name")
+  departmentId       String     @map("department_id")
+  department         Department @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+
+  teamLeadEmployeeId String?    @map("team_lead_employee_id")
+  teamLead           Employee?  @relation("TeamLead", fields: [teamLeadEmployeeId], references: [id], onDelete: SetNull)
+
+  activeMembers      Int        @map("active_members")
+  planningCadence    String     @map("planning_cadence")
+  boardTool          String     @map("board_tool")
+  tasks              Task[]
+
+  createdAt          DateTime   @default(now()) @map("created_at")
+  updatedAt          DateTime   @updatedAt @map("updated_at")
+
+  @@index([departmentId])
+  @@index([teamLeadEmployeeId])
+  @@map("teams")
+}
+
+// ==========================================
+// 13. Sprints
+// ==========================================
+
+model Sprint {
+  id            String   @id
+  sprintName    String   @map("sprint_name")
+  startDate     DateTime @map("start_date")
+  endDate       DateTime @map("end_date")
+  workingDays   Int      @map("working_days")
+  financialYear String   @map("financial_year")
+  tasks         Task[]
+
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  @@map("sprints")
+}
+
+// ==========================================
+// 14. Tasks
+// ==========================================
+
+model Task {
+  id                 String    @id
+  teamId             String    @map("team_id")
+  team               Team      @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  sprintId           String    @map("sprint_id")
+  sprint             Sprint    @relation(fields: [sprintId], references: [id], onDelete: Cascade)
+
+  assigneeEmployeeId String    @map("assignee_employee_id")
+  taskType           String    @map("task_type")
+  priority           String
+  storyPoints        Int       @map("story_points")
+  createdDate        DateTime  @map("created_date")
+  startedDate        DateTime? @map("started_date")
+  dueDate            DateTime  @map("due_date")
+  completedDate      DateTime? @map("completed_date")
+  status             String
+  reopenedCount      Int       @default(0) @map("reopened_count")
+  cycleTimeDays      Float?    @map("cycle_time_days")
+  isOverdueAtCutoff  String    @map("is_overdue_at_cutoff")
+  completedOnTime    String?   @map("completed_on_time")
+
+  createdAt          DateTime  @default(now()) @map("created_at")
+  updatedAt          DateTime  @updatedAt @map("updated_at")
+
+  @@index([teamId])
+  @@index([sprintId])
+  @@index([assigneeEmployeeId])
+  @@map("tasks")
+}
+
+// ==========================================
+// 15. Clients
+// ==========================================
+
+model Client {
+  id               String    @id
+  clientName       String    @map("client_name")
+  industry         String
+  country          String
+  paymentTermsDays Int       @map("payment_terms_days")
+  invoices         Invoice[]
+
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+
+  @@map("clients")
+}
+
+// ==========================================
+// 16. Vendors
+// ==========================================
+
+model Vendor {
+  id                    String    @id
+  vendorName            String    @map("vendor_name")
+  primaryExpenseAccount Int       @map("primary_expense_account")
+  paymentTermsDays      Int       @map("payment_terms_days")
+  city                  String
+  gstRegistration       String    @map("gst_registration")
+  isActive              String    @map("is_active")
+  expenses              Expense[]
+
+  createdAt             DateTime  @default(now()) @map("created_at")
+  updatedAt             DateTime  @updatedAt @map("updated_at")
+
+  @@map("vendors")
+}
+
+// ==========================================
+// 17. Invoices
+// ==========================================
+
+model Invoice {
+  id                       String    @id
+  invoiceNumber            String    @map("invoice_number")
+  clientId                 String    @map("client_id")
+  client                   Client    @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  invoiceDate              DateTime  @map("invoice_date")
+  dueDate                  DateTime  @map("due_date")
+  serviceLineAccount       Int       @map("service_line_account")
+  currency                 String
+  subtotal                 Float
+  gstRatePercent           Float     @map("gst_rate_percent")
+  gstAmount                Float     @map("gst_amount")
+  totalAmount              Float     @map("total_amount")
+  amountPaid               Float     @map("amount_paid")
+  balanceDue               Float     @map("balance_due")
+  status                   String
+  lastPaymentDate          DateTime? @map("last_payment_date")
+  poNumber                 String?   @map("po_number")
+  carriedInFromPriorPeriod String    @map("carried_in_from_prior_period")
+  createdBy                String    @map("created_by")
+  createdAtSource          DateTime  @map("created_at_source")
+  ledgerEntryId            String?   @map("ledger_entry_id")
+
+  createdAt                DateTime  @default(now()) @map("created_at")
+  updatedAt                DateTime  @updatedAt @map("updated_at")
+
+  @@index([clientId])
+  @@map("invoices")
+}
+
+// ==========================================
+// 18. Expenses
+// ==========================================
+
+model Expense {
+  id                   String     @id
+  expenseDate          DateTime   @map("expense_date")
+  categoryAccount      Int        @map("category_account")
+  vendorId             String     @map("vendor_id")
+  vendor               Vendor     @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+
+  billReference        String     @map("bill_reference")
+  description          String
+  departmentId         String     @map("department_id")
+  department           Department @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+
+  amountExclGst        Float      @map("amount_excl_gst")
+  gstRatePercent       Float      @map("gst_rate_percent")
+  gstAmount            Float      @map("gst_amount")
+  totalAmount          Float      @map("total_amount")
+  dueDate              DateTime   @map("due_date")
+  paidDate             DateTime?  @map("paid_date")
+  status               String
+  paymentMode          String?    @map("payment_mode")
+  submittedBy          String     @map("submitted_by")
+  submitter            Employee   @relation("ExpenseSubmitter", fields: [submittedBy], references: [id], onDelete: Cascade)
+  approvedBy           String     @map("approved_by")
+  approver             Employee   @relation("ExpenseApprover", fields: [approvedBy], references: [id], onDelete: Cascade)
+
+  ledgerEntryId        String     @map("ledger_entry_id")
+  paymentLedgerEntryId String?    @map("payment_ledger_entry_id")
+
+  createdAt            DateTime   @default(now()) @map("created_at")
+  updatedAt            DateTime   @updatedAt @map("updated_at")
+
+  @@index([vendorId])
+  @@index([departmentId])
+  @@index([submittedBy])
+  @@index([approvedBy])
+  @@map("expenses")
+}
+
+// ==========================================
+// 19. Announcements
+// ==========================================
+
+model Announcement {
+  id        String   @id
+  title     String
+  body      String
+  category  String
+  postedOn  DateTime @map("posted_on")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("announcements")
+}
+
+// ==========================================
+// 20. HR FAQ
+// ==========================================
+
+model HrFaq {
+  id           String   @id
+  question     String
+  answer       String
+  category     String
+  policySource String   @map("policy_source")
+
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  @@map("hr_faqs")
+}
+
+// ==========================================
+// 21. Chatbot Responses
+// ==========================================
+
+model ChatbotResponse {
+  id                   String   @id @default(cuid())
+  intent               String   @unique
+  responseTemplate     String   @map("response_template")
+  requiresLogin        String   @map("requires_login")
+  allowedRoles         String   @map("allowed_roles")
+  backendOrServiceCall String?  @map("backend_or_service_call")
+  onFailure            String?  @map("on_failure")
+  policyNote           String?  @map("policy_note")
+
+  createdAt            DateTime @default(now()) @map("created_at")
+  updatedAt            DateTime @updatedAt @map("updated_at")
+
+  @@map("chatbot_responses")
+}
+
+// ==========================================
+// 22. AI Anomaly Results
+// ==========================================
+
+model AiAnomalyResult {
+  id            String   @id
+  sourceDataset String   @map("source_dataset")
+  recordId      String   @map("record_id")
+  employeeId    String   @map("employee_id")
+  period        DateTime
+  anomalyScore  Float    @map("anomaly_score")
+  flagged       String
+  reasonCode    String   @map("reason_code")
+  reasonText    String   @map("reason_text")
+  moneyAtRisk   Float?   @map("money_at_risk")
+  modelVersion  String   @map("model_version")
+  scoredAt      DateTime @map("scored_at")
+
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  @@index([employeeId])
+  @@index([sourceDataset])
+  @@map("ai_anomaly_results")
+}
+
+// ==========================================
+// 23. AI Attrition Risk
+// ==========================================
+
+model AiAttritionRisk {
+  id           String     @id
+  employeeId   String     @map("employee_id")
+  employee     Employee   @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  departmentId String     @map("department_id")
+  department   Department @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+
+  asOfDate     DateTime   @map("as_of_date")
+  riskScore12m Float      @map("risk_score_12m")
+  riskBand     String     @map("risk_band")
+  topReason1   String     @map("top_reason_1")
+  topReason2   String     @map("top_reason_2")
+  topReason3   String     @map("top_reason_3")
+  modelVersion String     @map("model_version")
+  modelNote    String     @map("model_note")
+
+  createdAt    DateTime   @default(now()) @map("created_at")
+  updatedAt    DateTime   @updatedAt @map("updated_at")
+
+  @@index([employeeId])
+  @@index([departmentId])
+  @@map("ai_attrition_risk")
 }

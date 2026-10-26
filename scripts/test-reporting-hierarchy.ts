@@ -66,81 +66,81 @@ async function testHierarchy() {
     return { status, body };
   }
 
-  // --- RELATIONSHIP 1: Executive without Manager (EMP-001: Alexander Wright) ---
-  console.log("\n▶ Relationship 1: Executive without Manager (EMP-001 — Alexander Wright)");
-  const emp1Res = await fetchProfile("EMP-001");
-  assert(emp1Res.status === 200, "EMP-001 endpoint returns HTTP 200");
+  // --- RELATIONSHIP 1: Executive without Manager (EMP-0006: Tejas Chowdhury) ---
+  console.log("\n▶ Relationship 1: Executive without Manager (EMP-0006 — Tejas Chowdhury)");
+  const emp1Res = await fetchProfile("EMP-0006");
+  assert(emp1Res.status === 200, "EMP-0006 endpoint returns HTTP 200");
   const emp1 = emp1Res.body.data;
 
-  assert(emp1.id === "EMP-001", "EMP-001 ID is verified");
-  assert(emp1.name === "Alexander Wright", "EMP-001 display name matches");
-  assert(emp1.managerId === null, "EMP-001 managerId is strictly null (Top-level executive)");
-  assert(emp1.manager === null, "EMP-001 manager object is strictly null");
-  assert(Array.isArray(emp1.directReports), "EMP-001 directReports is an array");
-  assert(emp1.directReports.length >= 2, `EMP-001 has direct reports (${emp1.directReports.length} found)`);
+  assert(emp1.id === "EMP-0006", "EMP-0006 ID is verified");
+  assert(emp1.name === "Tejas Chowdhury", "EMP-0006 display name matches");
+  assert(emp1.managerId === null, "EMP-0006 managerId is strictly null (Top-level executive)");
+  assert(emp1.manager === null, "EMP-0006 manager object is strictly null");
+  assert(Array.isArray(emp1.directReports), "EMP-0006 directReports is an array");
+  assert(emp1.directReports.length >= 2, `EMP-0006 has direct reports (${emp1.directReports.length} found)`);
 
   // Verify DB record matches
   const dbEmp1 = await prisma.employee.findUnique({
-    where: { id: "EMP-001" },
+    where: { id: "EMP-0006" },
     include: { directReports: true },
   });
-  assert(dbEmp1?.managerId === null, "Database confirms EMP-001 has no manager");
+  assert(dbEmp1?.managerId === null, "Database confirms EMP-0006 has no manager");
   assert(
     dbEmp1?.directReports.length === emp1.directReports.length,
     `Database direct report count matches API (${dbEmp1?.directReports.length} vs ${emp1.directReports.length})`
   );
 
-  // --- RELATIONSHIP 2: Manager with both Manager and Direct Reports (EMP-003: Marcus Brody) ---
-  console.log("\n▶ Relationship 2: Middle Manager (EMP-003 — Marcus Brody)");
-  const emp3Res = await fetchProfile("EMP-003");
-  assert(emp3Res.status === 200, "EMP-003 endpoint returns HTTP 200");
+  // --- RELATIONSHIP 2: Manager with both Manager and Direct Reports (EMP-0547: Imran Philip) ---
+  console.log("\n▶ Relationship 2: Middle Manager (EMP-0547 — Imran Philip)");
+  const emp3Res = await fetchProfile("EMP-0547");
+  assert(emp3Res.status === 200, "EMP-0547 endpoint returns HTTP 200");
   const emp3 = emp3Res.body.data;
 
-  assert(emp3.id === "EMP-003", "EMP-003 ID is verified");
-  assert(emp3.name === "Marcus Brody", "EMP-003 display name matches");
-  assert(emp3.managerId === "EMP-001", "EMP-003 managerId is EMP-001");
-  assert(Boolean(emp3.manager), "EMP-003 has manager object");
-  assert(emp3.manager?.id === "EMP-001", "EMP-003 manager is Alexander Wright (EMP-001)");
-  assert(emp3.manager?.name === "Alexander Wright", "EMP-003 manager display name is Alexander Wright");
-  assert(Array.isArray(emp3.directReports), "EMP-003 directReports is an array");
-  assert(emp3.directReports.length > 0, `EMP-003 has direct reports (${emp3.directReports.length} found)`);
+  assert(emp3.id === "EMP-0547", "EMP-0547 ID is verified");
+  assert(emp3.name === "Imran Philip", "EMP-0547 display name matches");
+  assert(emp3.managerId === "EMP-0685", "EMP-0547 managerId is EMP-0685");
+  assert(Boolean(emp3.manager), "EMP-0547 has manager object");
+  assert(emp3.manager?.id === "EMP-0685", "EMP-0547 manager is Siddharth Rao (EMP-0685)");
+  assert(emp3.manager?.name === "Siddharth Rao", "EMP-0547 manager display name is Siddharth Rao");
+  assert(Array.isArray(emp3.directReports), "EMP-0547 directReports is an array");
+  assert(emp3.directReports.length > 0, `EMP-0547 has direct reports (${emp3.directReports.length} found)`);
 
-  // Check that Sophie Chen is in Marcus Brody's direct reports
-  const sophieInBrodyReports = emp3.directReports.some((r: { id: string }) => r.id === "EMP-004");
-  assert(sophieInBrodyReports, "EMP-004 (Sophie Chen) is listed among EMP-003's direct reports");
+  // Check that Sasi Shetty is in Imran Philip's direct reports
+  const sasiInPhilipReports = emp3.directReports.some((r: { id: string }) => r.id === "EMP-0188");
+  assert(sasiInPhilipReports, "EMP-0188 (Sasi Shetty) is listed among EMP-0547's direct reports");
 
   // Verify DB record matches
   const dbEmp3 = await prisma.employee.findUnique({
-    where: { id: "EMP-003" },
+    where: { id: "EMP-0547" },
     include: { manager: true, directReports: true },
   });
-  assert(dbEmp3?.manager?.id === "EMP-001", "Database confirms EMP-003 reports to EMP-001");
+  assert(dbEmp3?.manager?.id === "EMP-0685", "Database confirms EMP-0547 reports to EMP-0685");
   assert(
-    Boolean(dbEmp3?.directReports.some((r) => r.id === "EMP-004")),
-    "Database confirms EMP-004 reports to EMP-003"
+    Boolean(dbEmp3?.directReports.some((r) => r.id === "EMP-0188")),
+    "Database confirms EMP-0188 reports to EMP-0547"
   );
 
-  // --- RELATIONSHIP 3: Individual Contributor without Direct Reports (EMP-004: Sophie Chen) ---
-  console.log("\n▶ Relationship 3: Individual Contributor (EMP-004 — Sophie Chen)");
-  const emp4Res = await fetchProfile("EMP-004");
-  assert(emp4Res.status === 200, "EMP-004 endpoint returns HTTP 200");
+  // --- RELATIONSHIP 3: Individual Contributor without Direct Reports (EMP-0188: Sasi Shetty) ---
+  console.log("\n▶ Relationship 3: Individual Contributor (EMP-0188 — Sasi Shetty)");
+  const emp4Res = await fetchProfile("EMP-0188");
+  assert(emp4Res.status === 200, "EMP-0188 endpoint returns HTTP 200");
   const emp4 = emp4Res.body.data;
 
-  assert(emp4.id === "EMP-004", "EMP-004 ID is verified");
-  assert(emp4.name === "Sophie Chen", "EMP-004 display name matches");
-  assert(emp4.managerId === "EMP-003", "EMP-004 managerId is EMP-003");
-  assert(Boolean(emp4.manager), "EMP-004 has manager object");
-  assert(emp4.manager?.id === "EMP-003", "EMP-004 manager is Marcus Brody (EMP-003)");
-  assert(emp4.manager?.name === "Marcus Brody", "EMP-004 manager display name is Marcus Brody");
-  assert(Array.isArray(emp4.directReports), "EMP-004 directReports is an array");
-  assert(emp4.directReports.length === 0, "EMP-004 has ZERO direct reports (Individual Contributor)");
+  assert(emp4.id === "EMP-0188", "EMP-0188 ID is verified");
+  assert(emp4.name === "Sasi Shetty", "EMP-0188 display name matches");
+  assert(emp4.managerId === "EMP-0547", "EMP-0188 managerId is EMP-0547");
+  assert(Boolean(emp4.manager), "EMP-0188 has manager object");
+  assert(emp4.manager?.id === "EMP-0547", "EMP-0188 manager is Imran Philip (EMP-0547)");
+  assert(emp4.manager?.name === "Imran Philip", "EMP-0188 manager display name is Imran Philip");
+  assert(Array.isArray(emp4.directReports), "EMP-0188 directReports is an array");
+  assert(emp4.directReports.length === 0, "EMP-0188 has ZERO direct reports (Individual Contributor)");
 
   // Verify DB record matches
   const dbEmp4 = await prisma.employee.findUnique({
-    where: { id: "EMP-004" },
+    where: { id: "EMP-0188" },
     include: { directReports: true },
   });
-  assert(dbEmp4?.directReports.length === 0, "Database confirms EMP-004 has 0 direct reports");
+  assert(dbEmp4?.directReports.length === 0, "Database confirms EMP-0188 has 0 direct reports");
 
   // --- EDGE CASES: Non-existent employee & Invalid ID ---
   console.log("\n▶ Edge Cases: 404 Not Found & Malformed ID");

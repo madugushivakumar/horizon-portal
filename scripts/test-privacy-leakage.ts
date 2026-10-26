@@ -146,7 +146,7 @@ async function testPrivacyLeakage() {
 
   // 4. Audit Individual Profile API Responses (GET /api/v1/employees/[id])
   console.log("\n--- 4. Auditing Individual Employee Profile APIs ---");
-  const testIds = ["EMP-001", "EMP-002", "EMP-003", "EMP-004"];
+  const testIds = ["EMP-0006", "EMP-0099", "EMP-0547", "EMP-0188"];
 
   for (const id of testIds) {
     console.log(`\nAuditing Profile: ${id}`);

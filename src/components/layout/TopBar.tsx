@@ -23,6 +23,7 @@ export interface TopBarUser {
   name?: string;
   email?: string;
   role?: string;
+  employeeId?: string | null;
   employee?: {
     firstName?: string;
     lastName?: string;

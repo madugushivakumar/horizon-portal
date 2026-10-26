@@ -50,32 +50,32 @@ async function runBenchmark() {
 
   const testCases: BenchmarkCase[] = [
     {
-      name: "Full Name Search ('Alexander Wright')",
-      url: `${BASE_URL}/api/v1/employees?search=${encodeURIComponent("Alexander Wright")}`,
+      name: "Full Name Search ('Tejas Chowdhury')",
+      url: `${BASE_URL}/api/v1/employees?search=${encodeURIComponent("Tejas Chowdhury")}`,
     },
     {
-      name: "Partial First Name ('Elean')",
-      url: `${BASE_URL}/api/v1/employees?search=${encodeURIComponent("Elean")}`,
+      name: "Partial First Name ('Tej')",
+      url: `${BASE_URL}/api/v1/employees?search=${encodeURIComponent("Tej")}`,
     },
     {
-      name: "Partial Last Name ('Vance')",
-      url: `${BASE_URL}/api/v1/employees?search=${encodeURIComponent("Vance")}`,
+      name: "Partial Last Name ('Chowdhury')",
+      url: `${BASE_URL}/api/v1/employees?search=${encodeURIComponent("Chowdhury")}`,
     },
     {
-      name: "Exact Employee ID ('EMP-004')",
-      url: `${BASE_URL}/api/v1/employees?search=${encodeURIComponent("EMP-004")}`,
+      name: "Exact Employee ID ('EMP-0188')",
+      url: `${BASE_URL}/api/v1/employees?search=${encodeURIComponent("EMP-0188")}`,
     },
     {
-      name: "Mixed Case Query ('sOpHiE')",
-      url: `${BASE_URL}/api/v1/employees?search=${encodeURIComponent("sOpHiE")}`,
+      name: "Mixed Case Query ('iMrAn')",
+      url: `${BASE_URL}/api/v1/employees?search=${encodeURIComponent("iMrAn")}`,
     },
     {
-      name: "Whitespace Trim Test ('   marcus   ')",
-      url: `${BASE_URL}/api/v1/employees?search=${encodeURIComponent("   marcus   ")}`,
+      name: "Whitespace Trim Test ('   sasi   ')",
+      url: `${BASE_URL}/api/v1/employees?search=${encodeURIComponent("   sasi   ")}`,
     },
     {
-      name: "Combined Search + Department ('Engineering' + 'Chen')",
-      url: `${BASE_URL}/api/v1/employees?department=Engineering&search=Chen`,
+      name: "Combined Search + Department ('Engineering' + 'Shetty')",
+      url: `${BASE_URL}/api/v1/employees?department=Engineering&search=Shetty`,
     },
     {
       name: "Department Filter Alone ('Human Resources')",

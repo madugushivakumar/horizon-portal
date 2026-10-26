@@ -18,7 +18,7 @@ import { isRouteAllowedForRole } from "@/config/navigation";
 const SESSION_COOKIE = "horizon_session";
 
 // Public API endpoints that do not require authentication
-const PUBLIC_API_PREFIXES = ["/api/v1/auth/login", "/api/v1/auth/logout"];
+const PUBLIC_API_PREFIXES = ["/api/v1/auth/login", "/api/v1/auth/logout", "/api/v1/auth/demo-session"];
 
 function isStaticAsset(pathname: string): boolean {
   return (

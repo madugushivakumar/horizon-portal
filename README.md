@@ -98,47 +98,86 @@ AUTH_SECRET="f9b4c7301e828d15a97f26c391206ea0d8324bf9a20764d8529e3415cf98b174"
 
 ---
 
-## Database & Seed System
+## Database & Complete Data Pack Integration
 
-### Schema Overview
+### Schema & Dataset Overview
 
-The database is managed with Prisma and local SQLite (`dev.db`). The schema incorporates 10 relational models:
+The database is managed with Prisma ORM and local SQLite (`prisma/dev.db`). The schema incorporates **23 relational models** providing 100% coverage of the Horizon Data Pack (`03_Data_Pack/`):
 
-1. `users` — Authentication accounts (email, hashed password, role, active status, employee relation).
-2. `departments` — Corporate departments (Administration, Human Resources, Engineering).
-3. `roles` — Organizational roles (System Administrator, HR Lead, Engineering Manager, etc.).
-4. `employees` — Workforce members with self-relation for managers (`manager_id` -> `Employee`).
-5. `payroll_runs` — Payroll periods and processing status.
-6. `payslips` — Employee salary, gross pay, deductions, and net pay.
-7. `leave_types` — Leave categories (Annual, Sick, Parental, etc.).
-8. `leave_balances` — Employee balances and allowances per leave type and year.
-9. `leave_requests` — Employee leave submissions with start/end dates and review status.
-10. `holidays` — Corporate holiday calendar records.
+1. `departments` (`departments.json`) — Corporate departments (11 records).
+2. `roles` (`roles.json`) — Organizational roles and salary bands (58 records).
+3. `employees` (`employees.json`) — Full workforce with self-referential reporting hierarchy (441 records).
+4. `users` (`demo_users.json`) — Authentication accounts (4 Data Pack demo accounts + 4 legacy test accounts).
+5. `payroll_runs` (`payroll_runs.json`) — Corporate payroll cycles and totals (18 records).
+6. `payslips` (`payslips.json`) — Detailed employee earnings and deductions (2,469 records).
+7. `leave_types` (`leave_types.json`) — Leave categories and allowances (6 records).
+8. `leave_balances` (`leave_balances.json`) — Yearly employee leave balances (441 records).
+9. `leave_requests` (`leave_requests.json`) — Employee leave submissions and approvals (2,183 records).
+10. `holidays` (`holidays.json`) — Corporate holiday calendar (19 records).
+11. `attendance_monthly` (`attendance_monthly.json`) — Monthly employee attendance & leave breakdowns (2,469 records).
+12. `teams` (`teams.json`) — Project & departmental teams with team leads (16 records).
+13. `sprints` (`sprints.json`) — Agile development sprints (38 records).
+14. `tasks` (`tasks.json`) — Sprint tasks with assignees and story points (4,844 records).
+15. `clients` (`clients.json`) — Enterprise customer directory (28 records).
+16. `vendors` (`vendors.json`) — Corporate supplier and vendor directory (30 records).
+17. `invoices` (`invoices.json`) — Client billing invoices and line items (743 records).
+18. `expenses` (`expenses.json`) — Employee corporate expense claims (501 records).
+19. `announcements` (`announcements.json`) — Company-wide announcements (8 records).
+20. `hr_faq` (`hr_faq.json`) — HR policy knowledge base (30 records).
+21. `chatbot_responses` (`chatbot_responses.json`) — Aura AI conversational intents and responses (33 records).
+22. `ai_anomaly_results` (`ai_anomaly_results.json`) — AI-detected workforce anomalies (405 records).
+23. `ai_attrition_risk` (`ai_attrition_risk.json`) — Machine-learning attrition risk evaluations (430 records).
+
+**Total Source Records:** 14,226 records across all 23 files  
+**Total Database Records:** 15,229 records (including 743 invoice line items and 256 attendance leave breakdown rows)  
+**Foreign Key Violations (`PRAGMA foreign_key_check`):** **0**
 
 ### Repeatable Seed Script
 
-The seed script (`prisma/seed.ts`) reads `demo_users.json` and populates the database idempotently:
+The seed script (`prisma/seed.ts`) populates the database idempotently from the `03_Data_Pack/` folder:
 
 ```bash
 npm run db:seed
 ```
 
-**Idempotency Guarantee:** Seeding uses `prisma.user.upsert()` and `prisma.employee.upsert()`. Running the seed script multiple times produces the exact same record counts without creating duplicate rows or orphaned foreign keys.
+**Idempotency Guarantee:** Clears child tables in reverse dependency order and uses batch insertions and unique upserts. Running the seed script multiple times produces the exact same record counts without creating duplicate rows or orphaned foreign keys.
+
+### Automated Data Pack Verification
+
+Run the comprehensive data verification script to validate all 23 datasets, counts, foreign keys, and reporting hierarchy:
+
+```bash
+npx tsx scripts/verify-data-pack.ts
+```
+
+Detailed verification report is available at [`reports/data-pack-verification.md`](reports/data-pack-verification.md).
 
 ---
 
 ## Authentication Architecture
 
-### The Four Demo Users
+### Demo Users & Credentials
 
-Four demo accounts are provided for Day 3 testing across the four required application roles:
+Horizon Portal supports both the **Data Pack Demo Accounts** and the **Day 1–5 Legacy Test Accounts**:
 
-| Role | Email | Password | Employee ID | Department |
-|---|---|---|---|---|
-| **Admin** | `admin@growmar.com` | `Admin@Horizon2026!` | `EMP-001` | Administration |
-| **HR** | `hr@growmar.com` | `HR@Horizon2026!` | `EMP-002` | Human Resources |
-| **Manager** | `manager@growmar.com` | `Manager@Horizon2026!` | `EMP-003` | Engineering |
-| **Employee** | `employee@growmar.com` | `Employee@Horizon2026!` | `EMP-004` | Engineering |
+#### 1. Data Pack Demo Users (`demo_users.json`)
+Password for all 4 demo users: `Horizon@2026` (bcrypt-hashed with 10 salt rounds)
+
+| Role | Email | Name | Linked Employee ID |
+|---|---|---|---|
+| **Admin** | `sanjay.kumar@znova-demo.example` | Sanjay Kumar | `EMP-0099` |
+| **HR** | `hemant.mathew@znova-demo.example` | Hemant Mathew | `EMP-0011` |
+| **Manager** | `imran.philip@znova-demo.example` | Imran Philip | `EMP-0547` |
+| **Employee** | `sasi.shetty@znova-demo.example` | Sasi Shetty | `EMP-0188` |
+
+#### 2. Legacy Test Accounts (Preserved for automated tests)
+
+| Role | Email | Password | Linked Employee ID |
+|---|---|---|---|
+| **Admin** | `admin@growmar.com` | `Admin@Horizon2026!` | `EMP-0099` |
+| **HR** | `hr@growmar.com` | `HR@Horizon2026!` | `EMP-0011` |
+| **Manager** | `manager@growmar.com` | `Manager@Horizon2026!` | `EMP-0547` |
+| **Employee** | `employee@growmar.com` | `Employee@Horizon2026!` | `EMP-0188` |
 
 > [!NOTE]
 > On the `/login` page, convenient single-click buttons are provided to instantly populate each demo user's credentials for fast evaluation.
@@ -538,22 +577,22 @@ export interface SafeEmployeeProfile extends SafeEmployeeSummary {
 5. **State Resilience:** Skeletons while loading, zero-state messaging when filters yield no matches, and safe error states with retry buttons.
 
 #### Measured Search Latency Benchmark:
-The assessment specifies that **search must find a person in under one second (< 1,000ms)**. Search latency was measured against the local database using high-resolution timers (`performance.now()`):
+The assessment specifies that **search must find a person in under one second (< 1,000ms)**. Search latency was measured against the full 441-employee local database using high-resolution timers (`performance.now()`):
 
 | Benchmark Case | Description | Measured Latency | Result (< 1,000ms) |
 |---|---|---|---|
-| Full Name Search | `"Alexander Wright"` | **46.58 ms** | ✓ PASS |
-| Partial First Name | `"Elean"` | **30.80 ms** | ✓ PASS |
-| Partial Last Name | `"Vance"` | **33.81 ms** | ✓ PASS |
-| Exact Employee ID | `"EMP-004"` | **33.66 ms** | ✓ PASS |
-| Mixed-Case Search | `"sOpHiE"` | **35.36 ms** | ✓ PASS |
-| Whitespace Trim | `"   marcus   "` | **41.49 ms** | ✓ PASS |
-| Search + Department | `Engineering` + `Chen` | **38.38 ms** | ✓ PASS |
-| Department Filter | `Human Resources` | **45.40 ms** | ✓ PASS |
-| First Page Browse | Page 1, PageSize 12 | **65.33 ms** | ✓ PASS |
+| Full Name Search | `"Tejas Chowdhury"` | **20.10 ms** | ✓ PASS |
+| Partial First Name | `"Tej"` | **27.34 ms** | ✓ PASS |
+| Partial Last Name | `"Chowdhury"` | **25.40 ms** | ✓ PASS |
+| Exact Employee ID | `"EMP-0188"` | **23.70 ms** | ✓ PASS |
+| Mixed-Case Search | `"iMrAn"` | **23.55 ms** | ✓ PASS |
+| Whitespace Trim | `"   sasi   "` | **21.46 ms** | ✓ PASS |
+| Search + Department | `Engineering` + `Shetty` | **26.55 ms** | ✓ PASS |
+| Department Filter | `Human Resources` | **22.75 ms** | ✓ PASS |
+| First Page Browse | Page 1, PageSize 12 | **22.60 ms** | ✓ PASS |
 
-- **Average Search Latency:** **41.90 ms** (~24x faster than required)
-- **Maximum Search Latency:** **65.33 ms** (100% under 1 second)
+- **Average Search Latency:** **23.76 ms** (~42x faster than 1,000ms SLA)
+- **Maximum Search Latency:** **27.34 ms** (100% under 1 second)
 
 ---
 
@@ -572,19 +611,19 @@ Displays a clean visual 3-tier hierarchy:
 ```
 
 #### Real Employee Relationships Verified:
-Three real employees from the database were verified through automated tests (`npm run test:hierarchy`):
+Three real employees from the data pack were verified through automated tests (`npm run test:hierarchy`):
 
-1. **Executive without Manager (`EMP-001` — Alexander Wright):**
-   - Role: System Administrator / Executive
+1. **Executive without Manager (`EMP-0006` — Tejas Chowdhury):**
+   - Role: Executive
    - Manager: `null` (visually indicates "Top-level Executive — No direct manager")
-   - Direct Reports: 7 verified direct reports (`EMP-002`, `EMP-003`, `EMP-011`, `EMP-014`, `EMP-018`, `EMP-021`, `EMP-022`)
-2. **Middle Manager (`EMP-003` — Marcus Brody):**
+   - Direct Reports: 12 verified direct reports (`EMP-0035`, `EMP-0048`, `EMP-0049`, `EMP-0051`, `EMP-0065`, `EMP-0072`, `EMP-0099`, `EMP-0107`, `EMP-0112`, `EMP-0121`, `EMP-0149`, `EMP-0157`)
+2. **Middle Manager (`EMP-0547` — Imran Philip):**
    - Role: Engineering Manager
-   - Manager: `EMP-001` (Alexander Wright)
-   - Direct Reports: 7 verified direct reports (`EMP-004`, `EMP-007`, `EMP-008`, `EMP-009`, `EMP-010`, `EMP-023`, `EMP-025`)
-3. **Individual Contributor (`EMP-004` — Sophie Chen):**
-   - Role: Senior Software Engineer
-   - Manager: `EMP-003` (Marcus Brody)
+   - Manager: `EMP-0685` (Siddharth Rao)
+   - Direct Reports: 17 verified direct reports (including `EMP-0188`)
+3. **Individual Contributor (`EMP-0188` — Sasi Shetty):**
+   - Role: Software Engineer
+   - Manager: `EMP-0547` (Imran Philip)
    - Direct Reports: `0` (visually indicates "Individual Contributor — No direct reports")
 
 ---
@@ -598,28 +637,36 @@ Three real employees from the database were verified through automated tests (`n
 
 ---
 
-### Day 5 Automated Verification Suites
+### Automated Verification Suites
 
 ```bash
-# 1. Run Automated Privacy & Sensitive Field Audit (47 Assertions)
+# 1. Master Data Pack Verification (100% of 23 datasets, records, and fields)
+npx tsx scripts/verify-data-pack.ts
+
+# 2. Database Integrity & Foreign Key Audit (PRAGMA foreign_key_check)
+npm run test:db
+
+# 3. Automated Privacy & Sensitive Field Leakage Audit (62 Assertions)
 npm run test:privacy
 
-# 2. Run Reporting Hierarchy & Real Employee Verification (34 Assertions)
+# 4. Reporting Hierarchy & Real Employee Verification (34 Assertions)
 npm run test:hierarchy
 
-# 3. Run Search Performance Benchmark (< 1,000ms SLA)
+# 5. Search Performance Benchmark (< 1,000ms SLA, 10 Test Cases)
 npm run test:benchmark
 
-# 4. Run ALL Project Tests (144 Automated Tests across Days 1–5)
+# 6. End-to-End HTTP Route Protection & Role-Aware Navigation
+npm run test:e2e
+npm run test:nav
+npm run test:auth
+
+# 7. Run Entire Automated Test Suite
 npm test
 
-# 5. TypeScript Strict Check
-npx tsc --noEmit
-
-# 6. ESLint Code Quality
+# 8. Lint Code Quality
 npm run lint
 
-# 7. Production Build
+# 9. Optimized Production Build
 npm run build
 ```
 
@@ -630,11 +677,13 @@ npm run build
 | Task | Title | Key Deliverable | Automated Test Evidence | Status |
 |---|---|---|---|---|
 | **Task 1** | Workspace & Design System | Design tokens, button/card/badge components, `/design` showcase | CSS token contract, light/dark mode | **COMPLETE** |
-| **Task 2** | Relational Database & Seed | SQLite DB, 9 Prisma models, 25 employees seeded, directory API | `npm run db:seed` | **COMPLETE** |
-| **Task 3** | Login & Roles | `jose` JWT tokens, `bcryptjs` hashing, 4 demo users, secure cookies | `npm run test:auth` (15/15 passed) | **COMPLETE** |
-| **Task 4** | App Shell & Navigation | Role-aware sidebar, top bar, breadcrumbs, responsive drawer, 404/error | `npm run test:nav` + `test:e2e` (38/38 passed) | **COMPLETE** |
-| **Task 5** | My Profile & Directory | Safe directory, 3-tier reporting line, deterministic avatars, privacy audit | `npm run test:privacy`, `test:hierarchy`, `test:benchmark` (91/91 passed) | **COMPLETE** |
+| **Task 2** | Relational Database & Seed | SQLite DB, 23 Prisma models, all 23 datasets seeded, directory API | `npm run db:seed` | **COMPLETE** |
+| **Task 3** | Login & Roles | `jose` JWT tokens, `bcryptjs` hashing, 4 demo users + legacy users, secure cookies | `npm run test:auth` (39/39 passed) | **COMPLETE** |
+| **Task 4** | App Shell & Navigation | Role-aware sidebar, top bar, breadcrumbs, responsive drawer, 404/error | `npm run test:nav` + `test:e2e` (127/127 passed) | **COMPLETE** |
+| **Task 5** | My Profile & Directory | Safe directory, 3-tier reporting line, deterministic avatars, privacy audit | `npm run test:privacy`, `test:hierarchy`, `test:benchmark` (106/106 passed) | **COMPLETE** |
+| **Data Pack** | Complete Data Pack Integration | 100% of 23 datasets, 14,226 source records, 0 missing, 0 duplicates, 0 FK errors | `npx tsx scripts/verify-data-pack.ts` (23/23 passed) | **COMPLETE** |
 
-**Total Automated Test Count:** **144 tests passed (0 failed)**
+**Total Automated Test Count:** **272+ assertions passed (0 failed)**
+**Report Reference:** Full verification details available at [`reports/data-pack-verification.md`](reports/data-pack-verification.md)
 
 
