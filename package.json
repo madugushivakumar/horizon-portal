@@ -16,7 +16,8 @@
     "test:benchmark": "tsx scripts/test-search-performance.ts",
     "test:db": "tsx scripts/verify-database.ts",
     "test:leave": "tsx scripts/test-day6-leave.ts",
-    "test": "npm run test:db && npm run test:auth && npm run test:nav && npm run test:e2e && npm run test:privacy && npm run test:hierarchy && npm run test:benchmark && npm run test:leave"
+    "test:payslips": "tsx scripts/test-day7-payslips.ts",
+    "test": "npm run test:db && npm run test:auth && npm run test:nav && npm run test:e2e && npm run test:privacy && npm run test:hierarchy && npm run test:benchmark && npm run test:leave && npm run test:payslips"
   },
   "dependencies": {
     "@prisma/client": "^6.19.3",

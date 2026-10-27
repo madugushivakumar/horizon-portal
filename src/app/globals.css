@@ -379,3 +379,93 @@ body {
   background-color: var(--hz-primary-800);
   color: var(--hz-primary-100);
 }
+
+/* ── Professional A4 Payslip Print Stylesheet ─────────────── */
+@page {
+  size: A4 portrait;
+  margin: 10mm 12mm;
+}
+
+@media print {
+  /* Hide interactive portal chrome */
+  nav,
+  aside,
+  header,
+  footer,
+  .no-print,
+  button,
+  .hz-action-bar,
+  [role="navigation"] {
+    display: none !important;
+  }
+
+  /* Reset outer container margins and paddings for clean print layout */
+  body,
+  html {
+    background: #ffffff !important;
+    color: #0f172a !important;
+    font-size: 11pt !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .min-h-screen {
+    min-height: auto !important;
+  }
+
+  .lg\:pl-64 {
+    padding-left: 0 !important;
+  }
+
+  main {
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+  }
+
+  /* Specific payslip document print optimizations */
+  .payslip-print-container {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    page-break-inside: avoid;
+  }
+
+  .payslip-table th,
+  .payslip-table td {
+    padding: 4pt 6pt !important;
+    font-size: 9.5pt !important;
+    border-color: #cbd5e1 !important;
+  }
+
+  .payslip-net-highlight {
+    background-color: #f1f5f9 !important;
+    border: 2px solid #0f172a !important;
+    color: #000000 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Prevent page breaks inside critical financial blocks */
+  .payslip-section,
+  .payslip-summary-grid,
+  .payslip-tables-row {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  /* Ensure monochrome contrast */
+  * {
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+}
+
