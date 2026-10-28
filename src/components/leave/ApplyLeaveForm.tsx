@@ -92,6 +92,10 @@ export function ApplyLeaveForm({ balances, onSuccess }: ApplyLeaveFormProps) {
       if (onSuccess) {
         onSuccess();
       }
+
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("horizon:notifications-updated"));
+      }
     } catch (err: unknown) {
       setErrorMsg(err instanceof Error ? err.message : "A network error occurred.");
     } finally {

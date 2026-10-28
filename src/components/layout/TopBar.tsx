@@ -12,7 +12,8 @@
  * - Logout button invoking POST /api/v1/auth/logout with loading state
  */
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Breadcrumbs } from "./Breadcrumbs";
 import { Badge } from "@/components/ui/badge";
@@ -45,6 +46,44 @@ export const TopBar: React.FC<TopBarProps> = ({
   const { theme, toggleTheme } = useTheme();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [logoutError, setLogoutError] = useState<string | null>(null);
+  const [unreadCount, setUnreadCount] = useState<number>(0);
+
+  // Fetch unread notification count
+  const fetchUnreadCount = useCallback(async () => {
+    try {
+      const res = await fetch("/api/v1/notifications");
+      if (res.ok) {
+        const data = await res.json();
+        const count = typeof data.unreadCount === "number" ? data.unreadCount : 0;
+        setUnreadCount(count);
+      }
+    } catch {
+      // Ignore network errors during background update
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchUnreadCount();
+
+    // Listen to focus and visibility changes to refresh count
+    const handleFocus = () => fetchUnreadCount();
+    const handleVisibility = () => {
+      if (document.visibilityState === "visible") {
+        fetchUnreadCount();
+      }
+    };
+    const handleCustomUpdate = () => fetchUnreadCount();
+
+    window.addEventListener("focus", handleFocus);
+    document.addEventListener("visibilitychange", handleVisibility);
+    window.addEventListener("horizon:notifications-updated", handleCustomUpdate);
+
+    return () => {
+      window.removeEventListener("focus", handleFocus);
+      document.removeEventListener("visibilitychange", handleVisibility);
+      window.removeEventListener("horizon:notifications-updated", handleCustomUpdate);
+    };
+  }, [fetchUnreadCount]);
 
   // Derive display name with safe fallbacks
   const displayName =
@@ -122,6 +161,41 @@ export const TopBar: React.FC<TopBarProps> = ({
 
       {/* Right side: Actions, Theme, and Profile */}
       <div className="flex items-center gap-2 sm:gap-4">
+        {/* Notifications Bell */}
+        <Link
+          href="/notifications"
+          id="topbar-notifications-bell"
+          aria-label={
+            unreadCount > 0
+              ? `Notifications, ${unreadCount} unread`
+              : "Notifications, 0 unread"
+          }
+          className="relative flex h-9 w-9 items-center justify-center rounded-lg border border-[var(--hz-border-default)] bg-[var(--hz-bg-surface)] text-[var(--hz-text-secondary)] hover:text-[var(--hz-text-primary)] hover:bg-[var(--hz-bg-subtle)] focus-visible:outline-2 focus-visible:outline-[var(--hz-primary-500)] transition-colors"
+        >
+          <svg
+            className="h-4 w-4"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            aria-hidden="true"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+            />
+          </svg>
+          {unreadCount > 0 && (
+            <span
+              id="topbar-unread-badge"
+              className="absolute -top-1 -right-1 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-[var(--hz-primary-600)] px-1 text-[10px] font-bold text-white shadow-sm ring-2 ring-[var(--hz-bg-surface)]"
+            >
+              {unreadCount > 9 ? "9+" : unreadCount}
+            </span>
+          )}
+        </Link>
+
         {/* Theme Toggle Button */}
         <button
           onClick={toggleTheme}

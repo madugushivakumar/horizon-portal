@@ -993,34 +993,50 @@ async function seedDataPack() {
   // ─────────────────────────────────────────────────────────────
   console.log("\n▶ [19/23] Seeding Announcements...");
   interface RawAnnouncement {
-    announcement_id: string;
-    title: string;
-    body: string;
-    category: string;
-    posted_on: string;
+    announcement_id?: string;
+    title?: string;
+    body?: string;
+    category?: string;
+    posted_on?: string;
   }
   const rawAnnouncements = loadJson<RawAnnouncement[]>("announcements.json");
   console.log(`   Source records found: ${rawAnnouncements.length}`);
 
+  let validCount = 0;
+  let rejectedCount = 0;
+
   for (const a of rawAnnouncements) {
+    if (!a.announcement_id || !a.title || !a.body || !a.category || !a.posted_on) {
+      console.warn(`   ⚠️ Skipping malformed announcement record: ${JSON.stringify(a)}`);
+      rejectedCount++;
+      continue;
+    }
+    const postedDate = new Date(a.posted_on);
+    if (isNaN(postedDate.getTime())) {
+      console.warn(`   ⚠️ Skipping announcement with invalid date: ${a.posted_on}`);
+      rejectedCount++;
+      continue;
+    }
+
     await prisma.announcement.upsert({
       where: { id: a.announcement_id },
       update: {
         title: a.title,
         body: a.body,
         category: a.category,
-        postedOn: new Date(a.posted_on),
+        postedOn: postedDate,
       },
       create: {
         id: a.announcement_id,
         title: a.title,
         body: a.body,
         category: a.category,
-        postedOn: new Date(a.posted_on),
+        postedOn: postedDate,
       },
     });
+    validCount++;
   }
-  console.log(`   ✓ Seeded ${rawAnnouncements.length} announcements.`);
+  console.log(`   ✓ Seeded ${validCount} announcements (${rejectedCount} rejected).`);
 
   // ─────────────────────────────────────────────────────────────
   // 20. HR FAQ (30 records)

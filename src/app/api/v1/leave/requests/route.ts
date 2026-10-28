@@ -9,6 +9,7 @@ import { prisma } from "@/lib/prisma";
 import { SESSION_COOKIE_NAME } from "@/lib/auth/session";
 import { getAuthenticatedUserFromToken } from "@/lib/auth/user";
 import { calculateWorkingDays } from "@/lib/leave/calculations";
+import { notify } from "@/lib/notifications/notify";
 
 export async function GET(request: NextRequest) {
   try {
@@ -251,6 +252,62 @@ export async function POST(request: NextRequest) {
 
       return created;
     });
+
+    // 7. Resolve notification recipient (Manager via reporting hierarchy, fallback to designated HR)
+    try {
+      const applicantEmployee = await prisma.employee.findUnique({
+        where: { id: employeeId },
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          managerId: true,
+        },
+      });
+
+      let recipientUser = null;
+      if (applicantEmployee?.managerId) {
+        recipientUser = await prisma.user.findFirst({
+          where: {
+            employeeId: applicantEmployee.managerId,
+            isActive: true,
+          },
+          select: { id: true, email: true },
+        });
+      }
+
+      // Fallback: If manager does not have a user account, designate an active HR reviewer
+      if (!recipientUser) {
+        recipientUser = await prisma.user.findFirst({
+          where: {
+            role: "HR",
+            isActive: true,
+          },
+          select: { id: true, email: true },
+        });
+      }
+
+      if (recipientUser) {
+        const applicantName = applicantEmployee
+          ? `${applicantEmployee.firstName} ${applicantEmployee.lastName}`.trim()
+          : authResult.user.name || "An employee";
+        const startStr = newRequest.startDate.toISOString().split("T")[0];
+        const endStr = newRequest.endDate.toISOString().split("T")[0];
+        const daysLabel = workingDays === 1 ? "1 working day" : `${workingDays} working days`;
+
+        await notify({
+          userId: recipientUser.id,
+          title: "New Leave Request Submitted",
+          message: `${applicantName} submitted a ${leaveType.name} request for ${startStr} to ${endStr} (${daysLabel}) awaiting review.`,
+          eventKey: `leave_request:${newRequest.id}`,
+        });
+      }
+    } catch (notifErr) {
+      console.error(
+        "[LeaveRequest] Notification delivery failed (leave request remains committed):",
+        notifErr
+      );
+    }
 
     return NextResponse.json(
       {
