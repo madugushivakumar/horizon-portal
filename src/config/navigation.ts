@@ -116,6 +116,14 @@ export const NAVIGATION_REGISTRY: NavItem[] = [
     roles: ["HR", "Admin"],
     description: "Applicant pipelines, hiring workflows, and offers",
   },
+  {
+    id: "admin-employees",
+    title: "Employee Console",
+    href: "/admin/employees",
+    icon: "users",
+    roles: ["HR", "Admin"],
+    description: "Workforce administration, employee profiles, and lifecycle operations",
+  },
 
   // ── Admin Specific ─────────────────────────────────────────────
   {
@@ -183,7 +191,7 @@ export function getNavigationForRole(userRole: string | undefined): NavSection[]
     }
   } else if (role === "HR") {
     const hrItems = allowed.filter((item) =>
-      ["leave-mgmt", "payroll-ops", "recruitment"].includes(item.id)
+      ["leave-mgmt", "payroll-ops", "recruitment", "admin-employees"].includes(item.id)
     );
     if (hrItems.length > 0) {
       sections.push({
@@ -193,7 +201,7 @@ export function getNavigationForRole(userRole: string | undefined): NavSection[]
     }
   } else if (role === "Admin") {
     const managementItems = allowed.filter((item) =>
-      ["approvals", "team-overview", "leave-mgmt", "payroll-ops", "recruitment"].includes(item.id)
+      ["approvals", "team-overview", "leave-mgmt", "payroll-ops", "recruitment", "admin-employees"].includes(item.id)
     );
     if (managementItems.length > 0) {
       sections.push({

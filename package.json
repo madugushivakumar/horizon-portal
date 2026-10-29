@@ -18,15 +18,20 @@
     "test:leave": "tsx scripts/test-day6-leave.ts",
     "test:payslips": "tsx scripts/test-day7-payslips.ts",
     "test:notifications": "tsx scripts/test-day8-notifications.ts",
-    "test": "npm run test:db && npm run test:auth && npm run test:nav && npm run test:e2e && npm run test:privacy && npm run test:hierarchy && npm run test:benchmark && npm run test:leave && npm run test:payslips && npm run test:notifications"
+    "test:employees": "tsx scripts/test-day9-employee-management.ts",
+    "test": "npm run test:db && npm run test:auth && npm run test:nav && npm run test:e2e && npm run test:privacy && npm run test:hierarchy && npm run test:benchmark && npm run test:leave && npm run test:payslips && npm run test:notifications && npm run test:employees"
   },
   "dependencies": {
+    "@hookform/resolvers": "^6.0.2",
     "@prisma/client": "^6.19.3",
+    "@tanstack/react-table": "^8.21.3",
     "bcryptjs": "^3.0.3",
     "jose": "^6.2.13",
     "next": "16.4.2",
     "react": "19.3.0",
-    "react-dom": "19.3.0"
+    "react-dom": "19.3.0",
+    "react-hook-form": "^7.91.0",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@tailwindcss/turbopack": "^4",

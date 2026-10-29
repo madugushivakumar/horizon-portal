@@ -188,3 +188,6 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+
+// Re-export POST handler for employee creation compatibility
+export { POST } from "@/app/api/v1/admin/employees/route";

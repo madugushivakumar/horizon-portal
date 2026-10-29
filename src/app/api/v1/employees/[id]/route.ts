@@ -152,3 +152,6 @@ export async function GET(request: NextRequest, context: RouteContext) {
     );
   }
 }
+
+// Re-export PATCH and PUT handlers for employee update compatibility
+export { PATCH, PUT } from "@/app/api/v1/admin/employees/[id]/route";
