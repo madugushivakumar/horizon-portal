@@ -18,7 +18,12 @@ export type AuditAction =
   | "EMPLOYEE_CREATED"
   | "EMPLOYEE_UPDATED"
   | "EMPLOYEE_DEACTIVATED"
-  | "EMPLOYEE_EXPORTED";
+  | "EMPLOYEE_EXPORTED"
+  | "LEAVE_APPROVED"
+  | "LEAVE_REJECTED"
+  | "LEAVE_DELEGATED"
+  | "LEAVE_ESCALATED"
+  | "ATTENDANCE_ACCESSED";
 
 export interface FieldDiff {
   fieldName: string;
@@ -272,6 +277,50 @@ export async function logEmployeeExport(
         rowCount,
         filters: filterSummary,
         exportedAt: new Date().toISOString(),
+      }),
+    },
+  });
+
+  return eventId;
+}
+
+export interface LeaveDecisionAuditParams {
+  actor: AuditActorSnapshot;
+  action: "LEAVE_APPROVED" | "LEAVE_REJECTED" | "LEAVE_DELEGATED" | "LEAVE_ESCALATED";
+  employeeId: string;
+  leaveRequestId: string;
+  previousStatus: string;
+  newStatus: string;
+  reason?: string | null;
+  delegationContext?: Record<string, unknown> | null;
+  correlationId?: string;
+}
+
+/**
+ * Persists an audit log entry for leave decisions (approval, rejection, delegation, escalation).
+ */
+export async function logLeaveDecision(
+  tx: Prisma.TransactionClient,
+  params: LeaveDecisionAuditParams
+): Promise<string> {
+  const eventId = params.correlationId || generateAuditEventId();
+
+  await tx.auditLog.create({
+    data: {
+      eventId,
+      actorId: params.actor.actorId,
+      actorEmail: params.actor.actorEmail || null,
+      actorRole: params.actor.actorRole || null,
+      action: params.action,
+      employeeId: params.employeeId,
+      fieldName: "status",
+      oldValue: params.previousStatus,
+      newValue: params.newStatus,
+      details: JSON.stringify({
+        leaveRequestId: params.leaveRequestId,
+        reason: params.reason || null,
+        delegation: params.delegationContext || null,
+        decidedAt: new Date().toISOString(),
       }),
     },
   });

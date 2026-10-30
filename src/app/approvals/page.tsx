@@ -1,15 +1,10 @@
 import React from "react";
-import PlaceholderView from "@/components/layout/PlaceholderView";
+import { LeaveApprovalQueue } from "@/components/approvals/LeaveApprovalQueue";
 
 export default function ApprovalsPage() {
   return (
-    <PlaceholderView
-      title="Team Approvals"
-      description="Review, approve, or reject pending team member leave submissions, expense claims, and time adjustments."
-      category="Management"
-      targetPhase="Phase 2 (Approval Workflows)"
-      permittedRoles={["Manager", "Admin"]}
-      icon="✓"
-    />
+    <div className="container mx-auto px-4 py-6 max-w-7xl">
+      <LeaveApprovalQueue />
+    </div>
   );
 }

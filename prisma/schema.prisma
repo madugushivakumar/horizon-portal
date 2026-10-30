@@ -114,6 +114,8 @@ model Employee {
   expensesSubmitted Expense[]           @relation("ExpenseSubmitter")
   expensesApproved  Expense[]           @relation("ExpenseApprover")
   aiAttritionRisks  AiAttritionRisk[]
+  delegationsGiven    ManagerDelegation[] @relation("OriginalManagerDelegations")
+  delegationsReceived ManagerDelegation[] @relation("ActingManagerDelegations")
 
   createdAt         DateTime            @default(now()) @map("created_at")
   updatedAt         DateTime            @updatedAt @map("updated_at")
@@ -260,20 +262,24 @@ model LeaveRequest {
   leaveTypeId   String?    @map("leave_type_id")
   leaveType     LeaveType? @relation(fields: [leaveTypeId], references: [id], onDelete: SetNull)
 
-  startDate     DateTime   @map("start_date")
-  endDate       DateTime   @map("end_date")
-  days          Float
-  status        String     @default("Pending") // Pending | Approved | Rejected
-  reason        String?
-  appliedOn     DateTime?  @map("applied_on")
-  approverId    String?    @map("approver_id")
-  decidedOn     DateTime?  @map("decided_on")
+  startDate           DateTime   @map("start_date")
+  endDate             DateTime   @map("end_date")
+  days                Float
+  status              String     @default("Pending") // Pending | Approved | Rejected
+  reason              String?
+  appliedOn           DateTime?  @map("applied_on")
+  approverId          String?    @map("approver_id")
+  decidedOn           DateTime?  @map("decided_on")
+  rejectionReason     String?    @map("rejection_reason")
+  delegatedApproverId String?    @map("delegated_approver_id")
+  isEscalated         Boolean    @default(false) @map("is_escalated")
 
-  createdAt     DateTime   @default(now()) @map("created_at")
-  updatedAt     DateTime   @updatedAt @map("updated_at")
+  createdAt           DateTime   @default(now()) @map("created_at")
+  updatedAt           DateTime   @updatedAt @map("updated_at")
 
   @@index([employeeId])
   @@index([approverId])
+  @@index([status])
   @@map("leave_requests")
 }
 
@@ -679,4 +685,28 @@ model AuditLog {
   @@index([createdAt])
   @@index([eventId])
   @@map("audit_logs")
+}
+
+// ==========================================
+// 26. Manager Delegations
+// ==========================================
+
+model ManagerDelegation {
+  id              String    @id @default(cuid())
+  managerId       String    @map("manager_id")
+  manager         Employee  @relation("OriginalManagerDelegations", fields: [managerId], references: [id], onDelete: Cascade)
+  actingManagerId String    @map("acting_manager_id")
+  actingManager   Employee  @relation("ActingManagerDelegations", fields: [actingManagerId], references: [id], onDelete: Cascade)
+  startDate       DateTime  @map("start_date")
+  endDate         DateTime  @map("end_date")
+  status          String    @default("Active") // Active | Inactive | Revoked
+  reason          String?
+
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  @@index([managerId])
+  @@index([actingManagerId])
+  @@index([status])
+  @@map("manager_delegations")
 }
