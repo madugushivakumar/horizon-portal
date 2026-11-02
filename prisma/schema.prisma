@@ -140,6 +140,11 @@ model PayrollRun {
   totalGross    Float?    @map("total_gross")
   totalNet      Float?    @map("total_net")
   status        String    @default("Completed")
+  approvalStatus String?   @default("Pending") @map("approval_status") // Pending | Approved | Rejected
+  preparerId     String?   @map("preparer_id")
+  approvedById   String?   @map("approved_by_id")
+  approvedAt     DateTime? @map("approved_at")
+  approvalNotes  String?   @map("approval_notes")
   payslips      Payslip[]
 
   createdAt     DateTime  @default(now()) @map("created_at")

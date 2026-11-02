@@ -23,7 +23,8 @@ export type AuditAction =
   | "LEAVE_REJECTED"
   | "LEAVE_DELEGATED"
   | "LEAVE_ESCALATED"
-  | "ATTENDANCE_ACCESSED";
+  | "ATTENDANCE_ACCESSED"
+  | "PAYROLL_APPROVED";
 
 export interface FieldDiff {
   fieldName: string;
@@ -321,6 +322,54 @@ export async function logLeaveDecision(
         reason: params.reason || null,
         delegation: params.delegationContext || null,
         decidedAt: new Date().toISOString(),
+      }),
+    },
+  });
+
+  return eventId;
+}
+
+export interface PayrollApprovalAuditParams {
+  actor: AuditActorSnapshot;
+  payrollRunId: string;
+  previousStatus: string;
+  newStatus: string;
+  previousApprovalStatus?: string | null;
+  newApprovalStatus?: string | null;
+  notes?: string | null;
+  reconciliationStatus?: string | null;
+  financialSummary?: Record<string, unknown> | null;
+  correlationId?: string;
+}
+
+/**
+ * Persists an immutable audit log entry for a payroll run approval inside a Prisma transaction.
+ */
+export async function logPayrollApproval(
+  tx: Prisma.TransactionClient,
+  params: PayrollApprovalAuditParams
+): Promise<string> {
+  const eventId = params.correlationId || generateAuditEventId();
+
+  await tx.auditLog.create({
+    data: {
+      eventId,
+      actorId: params.actor.actorId,
+      actorEmail: params.actor.actorEmail || null,
+      actorRole: params.actor.actorRole || null,
+      action: "PAYROLL_APPROVED",
+      employeeId: null,
+      fieldName: "approval_status",
+      oldValue: params.previousApprovalStatus || params.previousStatus,
+      newValue: params.newApprovalStatus || params.newStatus,
+      details: JSON.stringify({
+        payrollRunId: params.payrollRunId,
+        operationalStatus: params.newStatus,
+        approvalStatus: params.newApprovalStatus || "Approved",
+        reconciliationStatus: params.reconciliationStatus || null,
+        notes: params.notes || null,
+        financialSummary: params.financialSummary || null,
+        approvedAt: new Date().toISOString(),
       }),
     },
   });

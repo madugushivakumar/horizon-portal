@@ -24,6 +24,16 @@ export async function getCurrentUser(): Promise<AuthenticatedUser | null> {
     }
     return null;
   } catch (error) {
+    if (
+      typeof error === "object" &&
+      error !== null &&
+      "digest" in error &&
+      typeof (error as { digest?: unknown }).digest === "string" &&
+      ((error as { digest: string }).digest.startsWith("NEXT_") ||
+        (error as { digest: string }).digest === "HANGING_PROMISE_REJECTION")
+    ) {
+      throw error;
+    }
     console.error("Error fetching current user from server session:", error);
     return null;
   }

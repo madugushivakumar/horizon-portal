@@ -20,7 +20,9 @@
     "test:notifications": "tsx scripts/test-day8-notifications.ts",
     "test:employees": "tsx scripts/test-day9-employee-management.ts",
     "test:approvals": "tsx scripts/test-day10-approvals.ts",
-    "test": "npm run test:db && npm run test:auth && npm run test:nav && npm run test:e2e && npm run test:privacy && npm run test:hierarchy && npm run test:benchmark && npm run test:leave && npm run test:payslips && npm run test:notifications && npm run test:employees && npm run test:approvals"
+    "test:reconciliation": "tsx scripts/test-day11-payroll-reconciliation.ts",
+    "test:payroll": "tsx scripts/test-day11-payroll.ts",
+    "test": "npm run test:db && npm run test:auth && npm run test:nav && npm run test:e2e && npm run test:privacy && npm run test:hierarchy && npm run test:benchmark && npm run test:leave && npm run test:payslips && npm run test:notifications && npm run test:employees && npm run test:approvals && npm run test:reconciliation && npm run test:payroll"
   },
   "dependencies": {
     "@hookform/resolvers": "^6.0.2",
