@@ -28,9 +28,14 @@
     "test:finance-ui": "tsx scripts/test-day12-phase6b-summary-ui.ts",
     "test:finance-invoices": "tsx scripts/test-day12-phase6c-invoices-ui.ts",
     "test:finance-expenses": "tsx scripts/test-day12-phase6d-expenses-ui.ts",
+    "test:tasks-api": "tsx scripts/test-day13-tasks-api.ts",
+    "test:task-board-ui": "tsx scripts/test-day13-phase3-board-ui.ts",
+    "test:task-board-dnd": "tsx scripts/test-day13-phase4-dnd.ts",
     "test": "npm run test:db && npm run test:auth && npm run test:nav && npm run test:e2e && npm run test:privacy && npm run test:hierarchy && npm run test:benchmark && npm run test:leave && npm run test:payslips && npm run test:notifications && npm run test:employees && npm run test:approvals && npm run test:reconciliation && npm run test:payroll"
   },
   "dependencies": {
+    "@dnd-kit/core": "^6.3.1",
+    "@dnd-kit/utilities": "^3.2.2",
     "@hookform/resolvers": "^6.0.2",
     "@prisma/client": "^6.19.3",
     "@tanstack/react-table": "^8.21.3",

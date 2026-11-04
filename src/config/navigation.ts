@@ -46,6 +46,14 @@ export const NAVIGATION_REGISTRY: NavItem[] = [
     description: "Workforce member directory and organizational structure",
   },
   {
+    id: "task-board",
+    title: "Team Task Board",
+    href: "/task-board",
+    icon: "view-boards",
+    roles: ["Admin", "HR", "Manager", "Employee"],
+    description: "Manage team tasks, sprint execution, and Kanban delivery status",
+  },
+  {
     id: "people",
     title: "People Directory",
     href: "/people",
@@ -172,8 +180,8 @@ export function getNavigationForRole(userRole: string | undefined): NavSection[]
 
   const sections: NavSection[] = [];
 
-  // 1. General Section (Dashboard & Directory)
-  const coreItems = allowed.filter((item) => ["dashboard", "employees"].includes(item.id));
+  // 1. General Section (Dashboard & Directory & Task Board)
+  const coreItems = allowed.filter((item) => ["dashboard", "employees", "task-board"].includes(item.id));
   if (coreItems.length > 0) {
     sections.push({
       heading: "Overview",

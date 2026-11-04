@@ -409,6 +409,7 @@ model Task {
   cycleTimeDays      Float?    @map("cycle_time_days")
   isOverdueAtCutoff  String    @map("is_overdue_at_cutoff")
   completedOnTime    String?   @map("completed_on_time")
+  version            Int       @default(0)
 
   createdAt          DateTime  @default(now()) @map("created_at")
   updatedAt          DateTime  @updatedAt @map("updated_at")
