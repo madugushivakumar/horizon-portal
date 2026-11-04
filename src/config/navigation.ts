@@ -127,6 +127,15 @@ export const NAVIGATION_REGISTRY: NavItem[] = [
 
   // ── Admin Specific ─────────────────────────────────────────────
   {
+    id: "admin-finance",
+    title: "Finance Snapshot",
+    href: "/admin/finance",
+    icon: "currency-dollar",
+    roles: ["Admin"],
+    description:
+      "Read-only financial overview, invoice ageing, and expense monitoring",
+  },
+  {
     id: "admin-users",
     title: "User Management",
     href: "/admin/users",
@@ -211,7 +220,7 @@ export function getNavigationForRole(userRole: string | undefined): NavSection[]
     }
 
     const adminItems = allowed.filter((item) =>
-      ["admin-users", "admin-settings", "admin-audit"].includes(item.id)
+      ["admin-finance", "admin-users", "admin-settings", "admin-audit"].includes(item.id)
     );
     if (adminItems.length > 0) {
       sections.push({

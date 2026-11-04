@@ -17,40 +17,13 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { SESSION_COOKIE_NAME } from "@/lib/auth/session";
 import { getAuthenticatedUserFromToken } from "@/lib/auth/user";
-import { getActorSnapshot, logEmployeeExport } from "@/lib/audit/audit-logger";
+import { getActorSnapshot, logEmployeeExport, sanitizeCsvCell } from "@/lib/audit/audit-logger";
 
 const NO_CACHE_HEADERS = {
   "Cache-Control": "private, no-cache, no-store, must-revalidate",
   Pragma: "no-cache",
   Expires: "0",
 };
-
-// Spreadsheet formula-triggering characters
-const FORMULA_TRIGGERS = ["=", "+", "-", "@", "\t", "\r"];
-
-/**
- * Sanitizes a cell value to prevent CSV / spreadsheet formula injection.
- * Escapes quotes and encloses in double quotes if commas/quotes/newlines exist.
- */
-export function sanitizeCsvCell(value: unknown): string {
-  if (value === null || value === undefined) {
-    return "";
-  }
-
-  let str = String(value);
-
-  // Formula injection mitigation: if value starts with formula trigger, prepend single quote
-  if (FORMULA_TRIGGERS.some((char) => str.startsWith(char))) {
-    str = `'${str}`;
-  }
-
-  // If string contains comma, quote, or newline, escape quotes and wrap in quotes
-  if (str.includes(",") || str.includes('"') || str.includes("\n") || str.includes("\r")) {
-    str = `"${str.replace(/"/g, '""')}"`;
-  }
-
-  return str;
-}
 
 export async function GET(request: NextRequest) {
   try {

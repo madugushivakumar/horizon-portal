@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint",
     "db:seed": "prisma db seed",
@@ -22,6 +22,12 @@
     "test:approvals": "tsx scripts/test-day10-approvals.ts",
     "test:reconciliation": "tsx scripts/test-day11-payroll-reconciliation.ts",
     "test:payroll": "tsx scripts/test-day11-payroll.ts",
+    "test:finance": "tsx scripts/test-day12-finance.ts",
+    "test:finance-apis": "tsx scripts/test-day12-finance-apis.ts",
+    "test:finance-exports": "tsx scripts/test-day12-finance-exports.ts",
+    "test:finance-ui": "tsx scripts/test-day12-phase6b-summary-ui.ts",
+    "test:finance-invoices": "tsx scripts/test-day12-phase6c-invoices-ui.ts",
+    "test:finance-expenses": "tsx scripts/test-day12-phase6d-expenses-ui.ts",
     "test": "npm run test:db && npm run test:auth && npm run test:nav && npm run test:e2e && npm run test:privacy && npm run test:hierarchy && npm run test:benchmark && npm run test:leave && npm run test:payslips && npm run test:notifications && npm run test:employees && npm run test:approvals && npm run test:reconciliation && npm run test:payroll"
   },
   "dependencies": {

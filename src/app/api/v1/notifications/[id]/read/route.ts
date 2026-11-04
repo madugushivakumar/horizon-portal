@@ -19,7 +19,7 @@ const NO_CACHE_HEADERS = {
 };
 
 interface RouteContext {
-  params: Promise<{ id: string }> | { id: string };
+  params: Promise<{ id: string }>;
 }
 
 export async function POST(request: NextRequest, context: RouteContext) {

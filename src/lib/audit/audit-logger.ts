@@ -58,6 +58,30 @@ const RESTRICTED_AUDIT_FIELDS = new Set([
   "bank_account",
 ]);
 
+// Spreadsheet formula-triggering characters
+const FORMULA_TRIGGERS = ["=", "+", "-", "@", "\t", "\r"];
+
+/**
+ * Sanitizes a cell value to prevent CSV / spreadsheet formula injection.
+ */
+export function sanitizeCsvCell(value: unknown): string {
+  if (value === null || value === undefined) {
+    return "";
+  }
+
+  let str = String(value);
+
+  if (FORMULA_TRIGGERS.some((char) => str.startsWith(char))) {
+    str = `'${str}`;
+  }
+
+  if (str.includes(",") || str.includes('"') || str.includes("\n") || str.includes("\r")) {
+    str = `"${str.replace(/"/g, '""')}"`;
+  }
+
+  return str;
+}
+
 /**
  * Extracts actor snapshot from an authenticated user object.
  */
