@@ -54,6 +54,14 @@ export const NAVIGATION_REGISTRY: NavItem[] = [
     description: "Manage team tasks, sprint execution, and Kanban delivery status",
   },
   {
+    id: "capacity",
+    title: "Workload & Capacity",
+    href: "/capacity",
+    icon: "scale",
+    roles: ["Admin", "HR", "Manager", "Employee"],
+    description: "Monitor team bandwidth, approved leave impact, and sprint capacity",
+  },
+  {
     id: "people",
     title: "People Directory",
     href: "/people",
@@ -180,8 +188,8 @@ export function getNavigationForRole(userRole: string | undefined): NavSection[]
 
   const sections: NavSection[] = [];
 
-  // 1. General Section (Dashboard & Directory & Task Board)
-  const coreItems = allowed.filter((item) => ["dashboard", "employees", "task-board"].includes(item.id));
+  // 1. General Section (Dashboard & Directory & Task Board & Capacity)
+  const coreItems = allowed.filter((item) => ["dashboard", "employees", "task-board", "capacity"].includes(item.id));
   if (coreItems.length > 0) {
     sections.push({
       heading: "Overview",

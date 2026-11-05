@@ -33,6 +33,12 @@ function renderNavIcon(name: string, active: boolean) {
   );
 
   switch (name) {
+    case "scale":
+      return (
+        <svg className={iconClass} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3-1m12 0l-3 1m0 0l-3 9a5.002 5.002 0 006.001 0M18 7l3-1m-9-3v18m-4 0h8" />
+        </svg>
+      );
     case "view-boards":
       return (
         <svg className={iconClass} fill="none" viewBox="0 0 24 24" stroke="currentColor">

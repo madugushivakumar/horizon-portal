@@ -28,6 +28,7 @@ const ROUTE_LABELS: Record<string, string> = {
   people: "People Directory",
   employees: "Directory",
   "task-board": "Team Task Board",
+  capacity: "Workload & Capacity",
   leave: "My Leave",
   payslips: "My Payslips",
   approvals: "Team Approvals",
