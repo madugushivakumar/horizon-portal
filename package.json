@@ -35,6 +35,9 @@
     "test:capacity-api": "tsx scripts/test-day14-capacity-api.ts",
     "test:capacity-ui": "tsx scripts/test-day14-capacity-ui.ts",
     "test:capacity": "npm run test:capacity-engine && npm run test:capacity-api && npm run test:capacity-ui",
+    "test:hr-insights-api": "tsx scripts/test-day15-api.ts",
+    "test:hr-insights-ui": "tsx scripts/test-day15-ui.ts",
+    "test:hr-insights-nav": "tsx scripts/test-day15-navigation.ts",
     "test": "npm run test:db && npm run test:auth && npm run test:nav && npm run test:e2e && npm run test:privacy && npm run test:hierarchy && npm run test:benchmark && npm run test:leave && npm run test:payslips && npm run test:notifications && npm run test:employees && npm run test:approvals && npm run test:reconciliation && npm run test:payroll"
   },
   "dependencies": {

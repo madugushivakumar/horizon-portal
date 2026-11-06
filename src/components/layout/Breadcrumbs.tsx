@@ -29,6 +29,7 @@ const ROUTE_LABELS: Record<string, string> = {
   employees: "Directory",
   "task-board": "Team Task Board",
   capacity: "Workload & Capacity",
+  "hr-insights": "AI Workforce Insights",
   leave: "My Leave",
   payslips: "My Payslips",
   approvals: "Team Approvals",
