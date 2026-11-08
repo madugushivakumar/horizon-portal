@@ -29,11 +29,21 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const [teams, sprints] = await Promise.all([
+    const [departments, teams, sprints] = await Promise.all([
+      prisma.department.findMany({
+        select: {
+          id: true,
+          name: true,
+        },
+        orderBy: {
+          name: "asc",
+        },
+      }),
       prisma.team.findMany({
         select: {
           id: true,
           teamName: true,
+          departmentId: true,
         },
         orderBy: {
           teamName: "asc",
@@ -54,7 +64,8 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(
       {
         success: true,
-        teams: teams.map((t) => ({ id: t.id, teamName: t.teamName })),
+        departments: departments.map((d) => ({ id: d.id, name: d.name })),
+        teams: teams.map((t) => ({ id: t.id, teamName: t.teamName, departmentId: t.departmentId })),
         sprints: sprints.map((s) => ({ id: s.id, sprintName: s.sprintName })),
       },
       { headers: NO_CACHE_HEADERS }

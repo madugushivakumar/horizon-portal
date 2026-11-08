@@ -466,7 +466,7 @@ export default function PayrollRunDetails({ runId, currentUser }: PayrollRunDeta
             </h4>
             <p className="text-xs text-zinc-500 max-w-md mx-auto mt-1">
               {header.actualPayslipCount === 0
-                ? "This historical payroll run was finalized with ledger totals only. Item-level digital payslips are archived or unavailable."
+                ? "This historical payroll run does not contain itemized payslip records in the available data pack. Financial totals shown here are the stored run-header figures and have not been independently reconciled against payslips."
                 : `No payslips match "${search}". Try searching for another employee name or identifier.`}
             </p>
           </div>

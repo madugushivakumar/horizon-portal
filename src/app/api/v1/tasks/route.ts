@@ -41,6 +41,7 @@ export async function GET(request: NextRequest) {
     // 2. Parse and validate query parameters
     const searchParams = request.nextUrl.searchParams;
     const rawQuery = {
+      departmentId: searchParams.get("departmentId") ?? undefined,
       teamId: searchParams.get("teamId") ?? undefined,
       sprintId: searchParams.get("sprintId") ?? undefined,
       page: searchParams.get("page") ?? undefined,
@@ -56,7 +57,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const { teamId, sprintId, page, pageSize } = parsedQuery.data;
+    const { departmentId, teamId, sprintId, page, pageSize } = parsedQuery.data;
 
     // 3. Build role-based scope and query conditions
     const roleScope = await getTaskRoleScope(authResult.user);
@@ -68,6 +69,10 @@ export async function GET(request: NextRequest) {
 
     if (roleScope) {
       andConditions.push(roleScope);
+    }
+
+    if (departmentId) {
+      andConditions.push({ team: { departmentId } });
     }
 
     if (teamId) {

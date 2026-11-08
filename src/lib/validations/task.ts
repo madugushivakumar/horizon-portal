@@ -25,6 +25,10 @@ export type KanbanTaskStatus = (typeof KANBAN_TASK_STATUSES)[number];
  * Empty string filter values are safely converted to undefined.
  */
 export const taskQuerySchema = z.object({
+  departmentId: z.preprocess(
+    (val) => (typeof val === "string" && val.trim() === "" ? undefined : val),
+    z.string().trim().min(1, "departmentId cannot be empty if provided.").optional()
+  ),
   teamId: z.preprocess(
     (val) => (typeof val === "string" && val.trim() === "" ? undefined : val),
     z.string().trim().min(1, "teamId cannot be empty if provided.").optional()

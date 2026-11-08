@@ -31,8 +31,17 @@ export default async function TaskBoardPage() {
     redirect("/login");
   }
 
-  // Pre-fetch actual database teams and sprints on the server for instant filter availability
-  const [teams, sprints] = await Promise.all([
+  // Pre-fetch actual database departments, teams, and sprints on the server for instant filter readiness
+  const [departments, teams, sprints] = await Promise.all([
+    prisma.department.findMany({
+      select: {
+        id: true,
+        name: true,
+      },
+      orderBy: {
+        name: "asc",
+      },
+    }),
     prisma.team.findMany({
       select: {
         id: true,
@@ -64,6 +73,7 @@ export default async function TaskBoardPage() {
     <AppShell initialUser={topBarUser}>
       <main className="container mx-auto px-4 py-6 max-w-7xl">
         <TaskBoard
+          initialDepartments={departments}
           initialTeams={teams}
           initialSprints={sprints}
           currentUserRole={user.role}

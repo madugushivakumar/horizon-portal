@@ -145,12 +145,91 @@ model PayrollRun {
   approvedById   String?   @map("approved_by_id")
   approvedAt     DateTime? @map("approved_at")
   approvalNotes  String?   @map("approval_notes")
+
+  // Original snapshot fields for in-flight pre-approval reconciliation
+  originalEmployeesPaid   Int?      @map("original_employees_paid")
+  originalTotalGross      Float?    @map("original_total_gross")
+  originalTotalDeductions Float?    @map("original_total_deductions")
+  originalTotalNet        Float?    @map("original_total_net")
+  reconciledAt            DateTime? @map("reconciled_at")
+  reconciledById          String?   @map("reconciled_by_id")
+  reconciliationNotes     String?   @map("reconciliation_notes")
+
   payslips      Payslip[]
+  adjustments   PayrollAdjustment[]
 
   createdAt     DateTime  @default(now()) @map("created_at")
   updatedAt     DateTime  @updatedAt @map("updated_at")
 
   @@map("payroll_runs")
+}
+
+// ==========================================
+// 5B. Payroll Adjustments (Historical Reporting Adjustments & Audit Ledger)
+// ==========================================
+
+model PayrollAdjustment {
+  id                      String      @id @default(cuid())
+  payrollRunId            String      @map("payroll_run_id")
+  payrollRun              PayrollRun  @relation(fields: [payrollRunId], references: [id], onDelete: Restrict)
+
+  // Status and Classification
+  adjustmentType          String      @default("HISTORICAL_REPORTING_ADJUSTMENT") @map("adjustment_type") // PRE_APPROVAL_CORRECTION | HISTORICAL_REPORTING_ADJUSTMENT
+  status                  String      @default("PROPOSED") @map("status") // PROPOSED | APPROVED | REJECTED
+  revision                Int         @default(1) @map("revision")
+
+  // Idempotency & Unique Submission Control
+  idempotencyKey          String      @unique @map("idempotency_key")
+
+  // Original Disbursement Snapshot (Immutable Historical Reference)
+  originalEmployeesPaid   Int         @map("original_employees_paid")
+  originalGrossPaise      BigInt      @map("original_gross_paise")
+  originalDeductionsPaise BigInt      @map("original_deductions_paise")
+  originalNetPaise        BigInt      @map("original_net_paise")
+  originalTotalGross      Float       @map("original_total_gross")
+  originalTotalDeductions Float       @map("original_total_deductions")
+  originalTotalNet        Float       @map("original_total_net")
+
+  // Audited Reporting Figures (Itemized Tie-Out)
+  adjustedEmployeesPaid   Int         @map("adjusted_employees_paid")
+  adjustedGrossPaise      BigInt      @map("adjusted_gross_paise")
+  adjustedDeductionsPaise BigInt      @map("adjusted_deductions_paise")
+  adjustedNetPaise        BigInt      @map("adjusted_net_paise")
+  adjustedTotalGross      Float       @map("adjusted_total_gross")
+  adjustedTotalDeductions Float       @map("adjusted_total_deductions")
+  adjustedTotalNet        Float       @map("adjusted_total_net")
+
+  // Exact Variances (Paise & Headcount)
+  varianceGrossPaise      BigInt      @map("variance_gross_paise")
+  varianceDeductionsPaise BigInt      @map("variance_deductions_paise")
+  varianceNetPaise        BigInt      @map("variance_net_paise")
+  varianceEmployees       Int         @map("variance_employees")
+
+  // Reconciliation Source & Business Justification
+  reason                  String      @map("reason")
+  reconciliationSource    String      @default("ITEMIZED_PAYSLIPS") @map("reconciliation_source")
+  sourceDatasetReference  String?     @map("source_dataset_reference")
+
+  // Maker-Checker Governance & Attribution
+  reconciledById          String      @map("reconciled_by_id")
+  reconciledAt            DateTime    @default(now()) @map("reconciled_at")
+  approvedById            String?     @map("approved_by_id")
+  approvedAt              DateTime?   @map("approved_at")
+  effectiveDate           DateTime    @default(now()) @map("effective_date")
+
+  // Audit Linkage
+  auditLogId              String?     @map("audit_log_id")
+  auditEventId            String?     @map("audit_event_id")
+
+  createdAt               DateTime    @default(now()) @map("created_at")
+  updatedAt               DateTime    @updatedAt @map("updated_at")
+
+  @@unique([payrollRunId, revision])
+  @@index([payrollRunId])
+  @@index([status])
+  @@index([auditEventId])
+  @@index([reconciledById])
+  @@map("payroll_adjustments")
 }
 
 // ==========================================

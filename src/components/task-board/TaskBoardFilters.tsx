@@ -13,15 +13,18 @@
  */
 
 import React from "react";
-import { TeamOption, SprintOption } from "@/types/task";
+import { TeamOption, SprintOption, DepartmentOption } from "@/types/task";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 export interface TaskBoardFiltersProps {
+  departments?: DepartmentOption[];
   teams: TeamOption[];
   sprints: SprintOption[];
+  selectedDepartmentId?: string;
   selectedTeamId: string;
   selectedSprintId: string;
+  onDepartmentChange?: (departmentId: string) => void;
   onTeamChange: (teamId: string) => void;
   onSprintChange: (sprintId: string) => void;
   onClearFilters: () => void;
@@ -32,10 +35,13 @@ export interface TaskBoardFiltersProps {
 }
 
 export const TaskBoardFilters: React.FC<TaskBoardFiltersProps> = ({
+  departments = [],
   teams,
   sprints,
+  selectedDepartmentId = "",
   selectedTeamId,
   selectedSprintId,
+  onDepartmentChange,
   onTeamChange,
   onSprintChange,
   onClearFilters,
@@ -44,7 +50,8 @@ export const TaskBoardFilters: React.FC<TaskBoardFiltersProps> = ({
   isLoadingFilters = false,
   className,
 }) => {
-  const hasActiveFilters = Boolean(selectedTeamId || selectedSprintId);
+  const hasActiveFilters = Boolean(selectedDepartmentId || selectedTeamId || selectedSprintId);
+  const activeDepartment = departments.find((d) => d.id === selectedDepartmentId);
   const activeTeam = teams.find((t) => t.id === selectedTeamId);
   const activeSprint = sprints.find((s) => s.id === selectedSprintId);
 
@@ -58,6 +65,37 @@ export const TaskBoardFilters: React.FC<TaskBoardFiltersProps> = ({
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         {/* Filter Dropdowns */}
         <div className="flex flex-wrap items-center gap-3">
+          {/* Department Selector (Phase 3 Mini Challenge) */}
+          <div className="flex flex-col sm:flex-row sm:items-center gap-1.5">
+            <label
+              htmlFor="department-filter-select"
+              className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 shrink-0"
+            >
+              Department:
+            </label>
+            <div className="relative">
+              <select
+                id="department-filter-select"
+                value={selectedDepartmentId}
+                onChange={(e) => onDepartmentChange?.(e.target.value)}
+                disabled={isLoadingFilters}
+                className={cn(
+                  "h-9 px-3 pr-8 rounded-lg border text-xs font-medium bg-zinc-50 dark:bg-zinc-800/80 transition-colors cursor-pointer",
+                  "border-zinc-200 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100",
+                  "focus:outline-hidden focus:ring-2 focus:ring-[var(--hz-primary)] focus:border-transparent",
+                  "disabled:opacity-50 disabled:cursor-not-allowed"
+                )}
+              >
+                <option value="">All Departments ({departments.length})</option>
+                {departments.map((dept) => (
+                  <option key={dept.id} value={dept.id}>
+                    {dept.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
           {/* Team Selector */}
           <div className="flex flex-col sm:flex-row sm:items-center gap-1.5">
             <label
@@ -147,6 +185,19 @@ export const TaskBoardFilters: React.FC<TaskBoardFiltersProps> = ({
           <span className="text-[11px] font-medium text-zinc-400 dark:text-zinc-500">
             Active Filters:
           </span>
+          {activeDepartment && (
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-900">
+              Department: {activeDepartment.name}
+              <button
+                type="button"
+                onClick={() => onDepartmentChange?.("")}
+                className="hover:text-emerald-900 dark:hover:text-emerald-100"
+                aria-label={`Remove department filter ${activeDepartment.name}`}
+              >
+                ×
+              </button>
+            </span>
+          )}
           {activeTeam && (
             <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 border border-blue-200 dark:border-blue-900">
               Team: {activeTeam.teamName}

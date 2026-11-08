@@ -1,0 +1,38 @@
+[
+  {
+    "id": "usr_admin_001",
+    "name": "Alexander Wright",
+    "email": "admin@growmar.com",
+    "password": "Admin@Horizon2026!",
+    "role": "Admin",
+    "employee_id": "EMP-001",
+    "is_active": true
+  },
+  {
+    "id": "usr_hr_002",
+    "name": "Eleanor Vance",
+    "email": "hr@growmar.com",
+    "password": "HR@Horizon2026!",
+    "role": "HR",
+    "employee_id": "EMP-002",
+    "is_active": true
+  },
+  {
+    "id": "usr_mgr_003",
+    "name": "Marcus Brody",
+    "email": "manager@growmar.com",
+    "password": "Manager@Horizon2026!",
+    "role": "Manager",
+    "employee_id": "EMP-003",
+    "is_active": true
+  },
+  {
+    "id": "usr_emp_004",
+    "name": "Sophie Chen",
+    "email": "employee@growmar.com",
+    "password": "Employee@Horizon2026!",
+    "role": "Employee",
+    "employee_id": "EMP-004",
+    "is_active": true
+  }
+]

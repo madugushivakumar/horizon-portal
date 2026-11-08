@@ -31,6 +31,7 @@ import {
   Task,
   TaskStatus,
   TaskPagination,
+  DepartmentOption,
   TeamOption,
   SprintOption,
   TaskBoardSummaryMetrics,
@@ -48,6 +49,7 @@ import { TaskBoardErrorState } from "./TaskBoardErrorState";
 import { TaskBoardNotificationBanner } from "./TaskBoardNotification";
 
 export interface TaskBoardProps {
+  initialDepartments?: DepartmentOption[];
   initialTeams?: TeamOption[];
   initialSprints?: SprintOption[];
   currentUserRole?: string;
@@ -55,19 +57,22 @@ export interface TaskBoardProps {
 }
 
 export const TaskBoard: React.FC<TaskBoardProps> = ({
+  initialDepartments = [],
   initialTeams = [],
   initialSprints = [],
   currentUserRole = "Employee",
   className,
 }) => {
   // Filter options state
+  const [departments, setDepartments] = useState<DepartmentOption[]>(initialDepartments);
   const [teams, setTeams] = useState<TeamOption[]>(initialTeams);
   const [sprints, setSprints] = useState<SprintOption[]>(initialSprints);
   const [isLoadingFilters, setIsLoadingFilters] = useState(
-    initialTeams.length === 0 && initialSprints.length === 0
+    initialDepartments.length === 0 && initialTeams.length === 0 && initialSprints.length === 0
   );
 
   // Active filters & pagination
+  const [selectedDepartmentId, setSelectedDepartmentId] = useState<string>("");
   const [selectedTeamId, setSelectedTeamId] = useState<string>("");
   const [selectedSprintId, setSelectedSprintId] = useState<string>("");
   const [page, setPage] = useState<number>(1);
@@ -111,7 +116,7 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
 
   // Load filter options if not provided initially
   useEffect(() => {
-    if (initialTeams.length > 0 && initialSprints.length > 0) return;
+    if (initialDepartments.length > 0 && initialTeams.length > 0 && initialSprints.length > 0) return;
 
     let isMounted = true;
     async function loadFilterOptions() {
@@ -121,6 +126,7 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
         if (res.ok && isMounted) {
           const data = await res.json();
           if (data.success) {
+            if (data.departments) setDepartments(data.departments);
             setTeams(data.teams || []);
             setSprints(data.sprints || []);
           }
@@ -136,7 +142,7 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
     return () => {
       isMounted = false;
     };
-  }, [initialTeams, initialSprints]);
+  }, [initialDepartments, initialTeams, initialSprints]);
 
   // Fetch tasks based on active filters and pagination
   useEffect(() => {
@@ -150,6 +156,9 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
         queryParams.set("page", String(page));
         queryParams.set("pageSize", String(pageSize));
 
+        if (selectedDepartmentId) {
+          queryParams.set("departmentId", selectedDepartmentId);
+        }
         if (selectedTeamId) {
           queryParams.set("teamId", selectedTeamId);
         }
@@ -223,9 +232,15 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
       ignore = true;
       abortController.abort();
     };
-  }, [page, pageSize, selectedTeamId, selectedSprintId, refreshTrigger]);
+  }, [page, pageSize, selectedDepartmentId, selectedTeamId, selectedSprintId, refreshTrigger]);
 
   // Filter change handlers (always reset to page 1)
+  const handleDepartmentChange = (newDepartmentId: string) => {
+    setIsLoading(true);
+    setSelectedDepartmentId(newDepartmentId);
+    setPage(1);
+  };
+
   const handleTeamChange = (newTeamId: string) => {
     setIsLoading(true);
     setSelectedTeamId(newTeamId);
@@ -240,6 +255,7 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
 
   const handleClearFilters = () => {
     setIsLoading(true);
+    setSelectedDepartmentId("");
     setSelectedTeamId("");
     setSelectedSprintId("");
     setPage(1);
@@ -430,7 +446,7 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
     doneCount: doneTasks.length,
   };
 
-  const hasActiveFilters = Boolean(selectedTeamId || selectedSprintId);
+  const hasActiveFilters = Boolean(selectedDepartmentId || selectedTeamId || selectedSprintId);
 
   return (
     <div className={`space-y-6 ${className || ""}`}>
@@ -452,10 +468,13 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
 
       {/* 3. Filter Toolbar */}
       <TaskBoardFilters
+        departments={departments}
         teams={teams}
         sprints={sprints}
+        selectedDepartmentId={selectedDepartmentId}
         selectedTeamId={selectedTeamId}
         selectedSprintId={selectedSprintId}
+        onDepartmentChange={handleDepartmentChange}
         onTeamChange={handleTeamChange}
         onSprintChange={handleSprintChange}
         onClearFilters={handleClearFilters}

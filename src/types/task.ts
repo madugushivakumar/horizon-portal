@@ -65,8 +65,14 @@ export interface TaskApiResponse {
 }
 
 export interface TaskBoardFiltersState {
+  departmentId?: string;
   teamId: string;
   sprintId: string;
+}
+
+export interface DepartmentOption {
+  id: string;
+  name: string;
 }
 
 export interface TeamOption {
