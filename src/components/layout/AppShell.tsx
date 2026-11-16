@@ -17,6 +17,7 @@ import { useRouter } from "next/navigation";
 import Sidebar from "./Sidebar";
 import TopBar, { TopBarUser } from "./TopBar";
 import { Skeleton } from "@/components/ui/skeleton";
+import { HRAssistantWidget } from "@/components/assistant/HRAssistantWidget";
 
 export interface AppShellProps {
   children: React.ReactNode;
@@ -148,6 +149,9 @@ export const AppShell: React.FC<AppShellProps> = ({ children, initialUser }) => 
           {children}
         </main>
       </div>
+
+      {/* Global Floating HR Assistant Widget (Authenticated Sessions) */}
+      <HRAssistantWidget />
     </div>
   );
 };
