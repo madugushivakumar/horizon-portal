@@ -139,10 +139,10 @@ export function ExpenseRegister() {
 
         setItems(json.data.items || []);
         setPagination(json.data.pagination || DEFAULT_PAGINATION);
-      } catch (err: any) {
+      } catch (err: unknown) {
         if (currentReqId === requestIdRef.current) {
           console.error("Fetch expenses error:", err);
-          setError(err.message || "Failed to retrieve expense records.");
+          setError(err instanceof Error ? err.message : "Failed to retrieve expense records.");
         }
       } finally {
         if (currentReqId === requestIdRef.current) {
@@ -155,7 +155,14 @@ export function ExpenseRegister() {
 
   // 3. Trigger fetch whenever filters, debounced search, or page changes
   useEffect(() => {
-    fetchExpenses(pagination.page);
+    let ignore = false;
+    const execute = async () => {
+      await fetchExpenses(pagination.page);
+    };
+    void execute();
+    return () => {
+      ignore = true;
+    };
   }, [fetchExpenses, pagination.page]);
 
   // 4. Filter Handlers

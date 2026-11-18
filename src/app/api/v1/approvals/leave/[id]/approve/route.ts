@@ -14,6 +14,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { SESSION_COOKIE_NAME } from "@/lib/auth/session";
 import { getAuthenticatedUserFromToken } from "@/lib/auth/user";
 import { approveLeaveRequest } from "@/lib/leave/approval-service";
+import { idParamSchema } from "@/lib/validations/common";
+import { leaveApprovalSchema } from "@/lib/validations/leave";
 
 const NO_CACHE_HEADERS = {
   "Cache-Control": "private, no-cache, no-store, must-revalidate",
@@ -26,7 +28,15 @@ export async function POST(
   context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = await context.params;
+    const { id: rawId } = await context.params;
+    const idValidation = idParamSchema.safeParse(rawId);
+    if (!idValidation.success) {
+      return NextResponse.json(
+        { error: "Invalid leave request identifier provided." },
+        { status: 400, headers: NO_CACHE_HEADERS }
+      );
+    }
+    const id = idValidation.data;
 
     const token =
       request.cookies.get(SESSION_COOKIE_NAME)?.value ||

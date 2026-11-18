@@ -13,6 +13,7 @@
  * - Full audit compliance logging via logLeaveDecision()
  */
 
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { AuthenticatedUser } from "@/lib/auth/user";
 import { getActorSnapshot, logLeaveDecision } from "@/lib/audit/audit-logger";
@@ -363,7 +364,7 @@ export async function getApprovalQueue(
   }
 
   // Construct Prisma where clause
-  const where: any = {};
+  const where: Prisma.LeaveRequestWhereInput = {};
 
   if (allowedEmployeeIds !== null) {
     where.employeeId = { in: allowedEmployeeIds };
@@ -377,25 +378,22 @@ export async function getApprovalQueue(
     where.leaveTypeCode = filters.leaveTypeCode;
   }
 
-  if (filters.departmentId) {
-    where.employee = {
-      ...where.employee,
-      departmentId: filters.departmentId,
-    };
-  }
-
-  if (filters.search) {
-    const term = filters.search.trim();
-    where.employee = {
-      ...where.employee,
-      OR: [
+  if (filters.departmentId || filters.search) {
+    const employeeFilter: Prisma.EmployeeWhereInput = {};
+    if (filters.departmentId) {
+      employeeFilter.departmentId = filters.departmentId;
+    }
+    if (filters.search) {
+      const term = filters.search.trim();
+      employeeFilter.OR = [
         { id: { contains: term } },
         { firstName: { contains: term } },
         { lastName: { contains: term } },
         { fullName: { contains: term } },
         { email: { contains: term } },
-      ],
-    };
+      ];
+    }
+    where.employee = employeeFilter;
   }
 
   if (filters.startDate) {
@@ -406,10 +404,16 @@ export async function getApprovalQueue(
     where.endDate = { lte: new Date(`${filters.endDate}T23:59:59.999Z`) };
   }
 
-  const orderBy: any = {};
   const sortCol = filters.sortBy || "appliedOn";
   const sortDir = filters.sortOrder || "desc";
-  orderBy[sortCol] = sortDir;
+  const orderBy: Prisma.LeaveRequestOrderByWithRelationInput =
+    sortCol === "startDate"
+      ? { startDate: sortDir }
+      : sortCol === "endDate"
+      ? { endDate: sortDir }
+      : sortCol === "days"
+      ? { days: sortDir }
+      : { appliedOn: sortDir };
 
   const [total, records] = await Promise.all([
     prisma.leaveRequest.count({ where }),
@@ -617,7 +621,7 @@ export async function approveLeaveRequest(
 
       // Decrement pendingDays and deduct actual balance exactly once
       if (balance) {
-        const balanceData: any = {
+        const balanceData: Prisma.LeaveBalanceUpdateInput = {
           pendingDays: {
             decrement: leaveReq.days,
           },

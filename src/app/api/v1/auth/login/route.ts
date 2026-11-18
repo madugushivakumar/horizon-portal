@@ -7,16 +7,25 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
+import { unstable_rethrow } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { verifyPassword } from "@/lib/auth/password";
 import { createAuthToken } from "@/lib/auth/token";
 import { setSessionCookie } from "@/lib/auth/session";
+import { loginInputSchema } from "@/lib/validations/auth";
+import {
+  checkLoginRateLimit,
+  recordFailedLoginAttempt,
+  recordBlockedLoginAttempt,
+  recordSuccessfulLogin,
+  createRateLimitResponse,
+} from "@/lib/security/rate-limit";
 
 export async function POST(request: NextRequest) {
   try {
-    let body: { email?: unknown; password?: unknown };
+    let body: unknown;
     try {
-      body = (await request.json()) as { email?: unknown; password?: unknown };
+      body = await request.json();
     } catch {
       return NextResponse.json(
         { error: "Invalid request payload. Expected JSON body." },
@@ -24,23 +33,25 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const email = typeof body?.email === "string" ? body.email : undefined;
-    const password = typeof body?.password === "string" ? body.password : undefined;
-
-    // Input validation
-    if (!email || typeof email !== "string" || !password || typeof password !== "string") {
+    const validation = loginInputSchema.safeParse(body);
+    if (!validation.success) {
+      const fieldErrors = validation.error.flatten().fieldErrors;
+      const firstErrorMessage =
+        validation.error.issues[0]?.message || "Email and password are required.";
       return NextResponse.json(
-        { error: "Email and password are required." },
+        { error: firstErrorMessage, details: fieldErrors },
         { status: 400 }
       );
     }
 
-    const normalizedEmail = email.trim().toLowerCase();
-    if (normalizedEmail.length > 255 || password.length > 255) {
-      return NextResponse.json(
-        { error: "Invalid email or password length." },
-        { status: 400 }
-      );
+    const { email: normalizedEmail, password } = validation.data;
+
+    // Rate-limit check across IP and Account dimensions
+    const rateLimitDecision = await checkLoginRateLimit(request, normalizedEmail);
+    if (!rateLimitDecision.allowed) {
+      // SEC-FIND-06 Remediation: Blocked attempt contributes to IP throttling without extending account lockout
+      await recordBlockedLoginAttempt(request);
+      return createRateLimitResponse(rateLimitDecision);
     }
 
     // Look up user by email
@@ -59,6 +70,7 @@ export async function POST(request: NextRequest) {
 
     // If user does not exist, return generic error (prevent email enumeration)
     if (!user) {
+      await recordFailedLoginAttempt(request, normalizedEmail);
       return NextResponse.json(
         { error: "Invalid email or password." },
         { status: 401 }
@@ -67,6 +79,7 @@ export async function POST(request: NextRequest) {
 
     // Check account status
     if (!user.isActive) {
+      await recordFailedLoginAttempt(request, normalizedEmail);
       return NextResponse.json(
         { error: "This account has been deactivated. Please contact support." },
         { status: 403 }
@@ -76,11 +89,15 @@ export async function POST(request: NextRequest) {
     // Verify password against stored bcrypt hash
     const isValid = await verifyPassword(password, user.passwordHash);
     if (!isValid) {
+      await recordFailedLoginAttempt(request, normalizedEmail);
       return NextResponse.json(
         { error: "Invalid email or password." },
         { status: 401 }
       );
     }
+
+    // Reset account failure counter on successful authentication
+    await recordSuccessfulLogin(request, normalizedEmail);
 
     // Issue signed token
     const token = await createAuthToken({
@@ -111,6 +128,16 @@ export async function POST(request: NextRequest) {
 
     return response;
   } catch (error) {
+    unstable_rethrow(error);
+    if (
+      typeof error === "object" &&
+      error !== null &&
+      "digest" in error &&
+      typeof (error as { digest?: unknown }).digest === "string" &&
+      (error as { digest: string }).digest.startsWith("NEXT_")
+    ) {
+      throw error;
+    }
     console.error("Login endpoint failure:", error);
     return NextResponse.json(
       { error: "An unexpected error occurred during login. Please try again." },

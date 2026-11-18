@@ -66,8 +66,8 @@ export function DeactivateConfirmationModal({
       setIsSubmitting(false);
       onSuccess();
       onClose();
-    } catch (err: any) {
-      setError(err.message || "A network error occurred while deactivating employee.");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "A network error occurred while deactivating employee.");
       setIsSubmitting(false);
     }
   };

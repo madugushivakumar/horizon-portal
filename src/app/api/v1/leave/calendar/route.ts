@@ -10,6 +10,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { SESSION_COOKIE_NAME } from "@/lib/auth/session";
 import { getAuthenticatedUserFromToken } from "@/lib/auth/user";
+import { leaveCalendarQuerySchema } from "@/lib/validations/leave";
 
 export async function GET(request: NextRequest) {
   try {
@@ -29,6 +30,21 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url);
+
+    const queryValidation = leaveCalendarQuerySchema.safeParse({
+      year: searchParams.get("year") ?? undefined,
+      month: searchParams.get("month") ?? undefined,
+    });
+
+    if (!queryValidation.success) {
+      const fieldErrors = queryValidation.error.flatten().fieldErrors;
+      const firstError = queryValidation.error.issues[0]?.message || "Invalid calendar query parameters.";
+      return NextResponse.json(
+        { error: firstError, details: fieldErrors },
+        { status: 400 }
+      );
+    }
+
     const yearParam = searchParams.get("year");
     const monthParam = searchParams.get("month");
 

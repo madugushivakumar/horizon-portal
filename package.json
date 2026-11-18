@@ -45,6 +45,10 @@
     "test:hr-insights-ui": "tsx scripts/test-day15-ui.ts",
     "test:hr-insights-nav": "tsx scripts/test-day15-navigation.ts",
     "test:assistant": "tsx scripts/test-day16-hr-assistant.ts",
+    "test:security": "tsx scripts/test-day18-security.ts",
+    "test:validation": "tsx scripts/test-day18-validation.ts",
+    "test:headers": "tsx scripts/test-day18-security-headers.ts",
+    "test:rate-limit": "tsx scripts/test-day18-login-rate-limit.ts",
     "test": "npm run test:db && npm run test:auth && npm run test:nav && npm run test:e2e && npm run test:privacy && npm run test:hierarchy && npm run test:benchmark && npm run test:leave && npm run test:payslips && npm run test:notifications && npm run test:employees && npm run test:approvals && npm run test:reconciliation && npm run test:payroll"
   },
   "dependencies": {
@@ -56,7 +60,7 @@
     "@tanstack/react-table": "^8.21.3",
     "bcryptjs": "^3.0.3",
     "jose": "^6.2.13",
-    "next": "16.4.2",
+    "next": "16.4.6",
     "postcss": "^8.5.33",
     "react": "19.3.0",
     "react-dom": "19.3.0",
@@ -71,7 +75,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
-    "eslint-config-next": "16.4.2",
+    "eslint-config-next": "16.4.6",
     "prisma": "^6.19.3",
     "tsx": "^4.23.15",
     "typescript": "^5"

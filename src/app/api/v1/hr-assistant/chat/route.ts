@@ -11,6 +11,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
+import { unstable_rethrow } from "next/navigation";
 import { z } from "zod";
 import { SESSION_COOKIE_NAME } from "@/lib/auth/session";
 import { getAuthenticatedUserFromToken } from "@/lib/auth/user";
@@ -80,6 +81,16 @@ export async function POST(request: NextRequest) {
       { status: 200, headers: NO_CACHE_HEADERS }
     );
   } catch (error) {
+    unstable_rethrow(error);
+    if (
+      typeof error === "object" &&
+      error !== null &&
+      "digest" in error &&
+      typeof (error as { digest?: unknown }).digest === "string" &&
+      (error as { digest: string }).digest.startsWith("NEXT_")
+    ) {
+      throw error;
+    }
     // Safe error handling: never leak stack traces or internal details to the client
     console.error("Unhandled error in HR Assistant Chat API:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json(

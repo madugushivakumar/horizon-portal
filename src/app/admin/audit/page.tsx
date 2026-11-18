@@ -63,6 +63,7 @@ function AdminAuditPageContent() {
   }, [router]);
 
   useEffect(() => {
+    let ignore = false;
     async function loadAuditLogs() {
       setLoading(true);
       setError(null);
@@ -83,14 +84,19 @@ function AdminAuditPageContent() {
         setLogs(json.data || []);
         setTotal(json.pagination?.total || 0);
         setTotalPages(json.pagination?.totalPages || 1);
-      } catch (err: any) {
-        setError(err.message || "Failed to load audit records.");
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : "Failed to load audit records.");
       } finally {
-        setLoading(false);
+        if (!ignore) {
+          setLoading(false);
+        }
       }
     }
 
-    loadAuditLogs();
+    void loadAuditLogs();
+    return () => {
+      ignore = true;
+    };
   }, [page, actionFilter]);
 
   return (

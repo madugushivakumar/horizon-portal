@@ -15,6 +15,7 @@ import { prisma } from "@/lib/prisma";
 import { SESSION_COOKIE_NAME } from "@/lib/auth/session";
 import { getAuthenticatedUserFromToken } from "@/lib/auth/user";
 import { logPayslipAccess } from "@/lib/payroll/audit";
+import { idParamSchema } from "@/lib/validations/common";
 
 const NO_CACHE_HEADERS = {
   "Cache-Control": "private, no-cache, no-store, must-revalidate",
@@ -28,14 +29,17 @@ interface RouteContext {
 
 export async function GET(request: NextRequest, context: RouteContext) {
   try {
-    const { run_id } = await context.params;
+    const { run_id: rawRunId } = await context.params;
+    const runIdValidation = idParamSchema.safeParse(rawRunId);
 
-    if (!run_id || typeof run_id !== "string") {
+    if (!runIdValidation.success) {
       return NextResponse.json(
         { error: "Invalid payroll run identifier." },
         { status: 400, headers: NO_CACHE_HEADERS }
       );
     }
+
+    const run_id = runIdValidation.data;
 
     const token = request.cookies.get(SESSION_COOKIE_NAME)?.value;
     const authResult = await getAuthenticatedUserFromToken(token);

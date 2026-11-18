@@ -14,6 +14,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
+import { unstable_rethrow } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { SESSION_COOKIE_NAME } from "@/lib/auth/session";
 import { getAuthenticatedUserFromToken } from "@/lib/auth/user";
@@ -228,6 +229,16 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
       { status: 409, headers: NO_CACHE_HEADERS }
     );
   } catch (error) {
+    unstable_rethrow(error);
+    if (
+      typeof error === "object" &&
+      error !== null &&
+      "digest" in error &&
+      typeof (error as { digest?: unknown }).digest === "string" &&
+      (error as { digest: string }).digest.startsWith("NEXT_")
+    ) {
+      throw error;
+    }
     console.error("Error in PATCH /api/v1/tasks/[id]:", error);
     return NextResponse.json(
       { error: "Internal server error updating task." },

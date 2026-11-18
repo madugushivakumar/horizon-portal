@@ -19,6 +19,7 @@ import { prisma } from "@/lib/prisma";
 import { SESSION_COOKIE_NAME } from "@/lib/auth/session";
 import { getAuthenticatedUserFromToken } from "@/lib/auth/user";
 import { reconcilePayrollRun } from "@/lib/payroll/reconciliation-service";
+import { payrollRunsQuerySchema } from "@/lib/validations/payroll";
 
 const NO_CACHE_HEADERS = {
   "Cache-Control": "private, no-cache, no-store, must-revalidate",
@@ -50,10 +51,24 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url);
-    const search = searchParams.get("search")?.trim().toLowerCase() || "";
-    const statusFilter = searchParams.get("status")?.trim().toLowerCase() || "all";
-    const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10));
-    const pageSize = Math.max(1, Math.min(100, parseInt(searchParams.get("pageSize") || "20", 10)));
+
+    const queryValidation = payrollRunsQuerySchema.safeParse({
+      search: searchParams.get("search") ?? undefined,
+      status: searchParams.get("status") ?? undefined,
+      page: searchParams.get("page") ?? undefined,
+      pageSize: searchParams.get("pageSize") ?? undefined,
+    });
+
+    if (!queryValidation.success) {
+      const fieldErrors = queryValidation.error.flatten().fieldErrors;
+      const firstError = queryValidation.error.issues[0]?.message || "Invalid query parameters.";
+      return NextResponse.json(
+        { error: firstError, details: fieldErrors },
+        { status: 400, headers: NO_CACHE_HEADERS }
+      );
+    }
+
+    const { search, status: statusFilter, page, pageSize } = queryValidation.data;
 
     // Fetch all runs ordered newest first by periodStart
     const allRuns = await prisma.payrollRun.findMany({

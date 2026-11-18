@@ -102,7 +102,14 @@ export default function AdminPayrollConsole() {
   }, [page, pageSize, statusFilter, debouncedSearch]);
 
   useEffect(() => {
-    fetchRuns();
+    let ignore = false;
+    const execute = async () => {
+      await fetchRuns();
+    };
+    void execute();
+    return () => {
+      ignore = true;
+    };
   }, [fetchRuns]);
 
   return (

@@ -10,6 +10,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
+import { unstable_rethrow } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { SESSION_COOKIE_NAME } from "@/lib/auth/session";
 import { getAuthenticatedUserFromToken } from "@/lib/auth/user";
@@ -115,6 +116,16 @@ export async function GET(request: NextRequest) {
       { headers: NO_CACHE_HEADERS }
     );
   } catch (error) {
+    unstable_rethrow(error);
+    if (
+      typeof error === "object" &&
+      error !== null &&
+      "digest" in error &&
+      typeof (error as { digest?: unknown }).digest === "string" &&
+      (error as { digest: string }).digest.startsWith("NEXT_")
+    ) {
+      throw error;
+    }
     console.error("Error in GET /api/v1/capacity/filters:", error);
     return NextResponse.json(
       { error: "Internal server error fetching capacity filters." },

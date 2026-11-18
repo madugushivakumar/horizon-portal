@@ -105,9 +105,9 @@ export function InvoiceExportButton({
       link.click();
       document.body.removeChild(link);
       window.URL.revokeObjectURL(downloadUrl);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Invoices CSV export error:", err);
-      setExportError(err.message || "Failed to download invoices CSV.");
+      setExportError(err instanceof Error ? err.message : "Failed to download invoices CSV.");
     } finally {
       setIsExporting(false);
     }

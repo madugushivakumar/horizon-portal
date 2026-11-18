@@ -93,10 +93,10 @@ export default function AdminFinanceConsole({
 
       setSummary(json.data as FinanceSummary);
       setLastUpdated(new Date());
-    } catch (err: any) {
+    } catch (err: unknown) {
       if (currentReqId === requestIdRef.current) {
         console.error("Finance summary fetch error:", err);
-        setError(err.message || "Failed to load financial summary.");
+        setError(err instanceof Error ? err.message : "Failed to load financial summary.");
       }
     } finally {
       if (currentReqId === requestIdRef.current) {
@@ -107,7 +107,14 @@ export default function AdminFinanceConsole({
   }, [initialReportingDate]);
 
   useEffect(() => {
-    fetchSummary(false);
+    let ignore = false;
+    const execute = async () => {
+      await fetchSummary(false);
+    };
+    void execute();
+    return () => {
+      ignore = true;
+    };
   }, [fetchSummary]);
 
   const activeReportingDate = summary?.reportingDate || initialReportingDate || "Loading...";

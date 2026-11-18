@@ -51,8 +51,14 @@ export async function GET(request: NextRequest) {
     const endDate = searchParams.get("endDate") || undefined;
     const page = parseInt(searchParams.get("page") || "1", 10);
     const pageSize = parseInt(searchParams.get("pageSize") || "25", 10);
-    const sortBy = (searchParams.get("sortBy") as any) || "appliedOn";
-    const sortOrder = (searchParams.get("sortOrder") as any) || "desc";
+    const rawSortBy = searchParams.get("sortBy");
+    const sortBy: "appliedOn" | "startDate" | "endDate" | "days" =
+      rawSortBy === "startDate" || rawSortBy === "endDate" || rawSortBy === "days"
+        ? rawSortBy
+        : "appliedOn";
+
+    const rawSortOrder = searchParams.get("sortOrder");
+    const sortOrder: "asc" | "desc" = rawSortOrder === "asc" ? "asc" : "desc";
 
     const result = await getApprovalQueue(authResult.user, {
       status: statusParam,

@@ -136,7 +136,14 @@ export function TeamAttendanceOverview() {
   }, [selectedPeriod, selectedDept, debouncedSearch, statusFilter]);
 
   useEffect(() => {
-    fetchAttendance();
+    let ignore = false;
+    const execute = async () => {
+      await fetchAttendance();
+    };
+    void execute();
+    return () => {
+      ignore = true;
+    };
   }, [fetchAttendance]);
 
   // Render status badge

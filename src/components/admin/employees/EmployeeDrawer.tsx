@@ -23,6 +23,23 @@ import {
 } from "@/lib/validations/employee";
 import { Button } from "@/components/ui/button";
 
+export type EmployeeFormData = {
+  id?: string;
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  workEmail?: string | null;
+  phone?: string | null;
+  departmentId?: string | null;
+  roleId?: string | null;
+  managerId?: string | null;
+  workLocation?: string | null;
+  workMode?: "Remote" | "Hybrid" | "Onsite" | "" | null;
+  employmentType?: "Permanent" | "Contract" | "Intern" | "Full-Time" | "" | null;
+  hireDate?: string | null;
+  status?: "Active" | "Inactive" | "Deactivated" | "On Leave";
+};
+
 export interface EmployeeDrawerProps {
   isOpen: boolean;
   onClose: () => void;
@@ -78,7 +95,7 @@ export function EmployeeDrawer({
     reset,
     watch,
     formState: { errors, isSubmitting },
-  } = useForm<any>({
+  } = useForm<EmployeeFormData>({
     resolver: zodResolver(currentSchema),
     defaultValues: {
       id: "",
@@ -145,10 +162,10 @@ export function EmployeeDrawer({
           roleId: initialData.roleId || "",
           managerId: initialData.managerId || "",
           workLocation: initialData.workLocation || "",
-          workMode: initialData.workMode || "",
-          employmentType: initialData.employmentType || "Permanent",
+          workMode: (initialData.workMode as "Remote" | "Hybrid" | "Onsite" | "") || "",
+          employmentType: (initialData.employmentType as "Permanent" | "Contract" | "Intern" | "Full-Time" | "") || "Permanent",
           hireDate: initialData.hireDate || "",
-          status: initialData.status || "Active",
+          status: (initialData.status as "Active" | "Inactive" | "Deactivated" | "On Leave") || "Active",
         });
       } else {
         // Auto-generate random ID suggestion for new employees
@@ -184,7 +201,7 @@ export function EmployeeDrawer({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isOpen, isSubmitting, onClose]);
 
-  const onSubmit = async (data: any) => {
+  const onSubmit = async (data: EmployeeFormData) => {
     setServerError(null);
     setFieldErrors({});
 
@@ -213,8 +230,8 @@ export function EmployeeDrawer({
 
       onSuccess();
       onClose();
-    } catch (err: any) {
-      setServerError(err.message || "An unexpected network error occurred.");
+    } catch (err: unknown) {
+      setServerError(err instanceof Error ? err.message : "An unexpected network error occurred.");
     }
   };
 

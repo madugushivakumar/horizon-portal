@@ -146,15 +146,22 @@ export function EmployeeManagementConsole() {
       setEmployees(json.data || []);
       setTotal(json.pagination?.total || 0);
       setTotalPages(json.pagination?.totalPages || 1);
-    } catch (err: any) {
-      setError(err.message || "An unexpected error occurred.");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "An unexpected error occurred.");
     } finally {
       setLoading(false);
     }
   }, [debouncedSearch, department, status, page, pageSize, sortBy, sortOrder]);
 
   useEffect(() => {
-    fetchEmployees();
+    let ignore = false;
+    const execute = async () => {
+      await fetchEmployees();
+    };
+    void execute();
+    return () => {
+      ignore = true;
+    };
   }, [fetchEmployees]);
 
   // Handle column sort toggle
