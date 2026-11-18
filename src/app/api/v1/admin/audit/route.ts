@@ -10,6 +10,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { SESSION_COOKIE_NAME } from "@/lib/auth/session";
 import { getAuthenticatedUserFromToken } from "@/lib/auth/user";
 import { queryAuditLogs } from "@/lib/audit/audit-logger";
+import { auditLogsQuerySchema } from "@/lib/validations/audit";
 
 const NO_CACHE_HEADERS = {
   "Cache-Control": "private, no-cache, no-store, must-revalidate",
@@ -41,20 +42,24 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url);
 
-    const employeeId = searchParams.get("employeeId")?.trim() || undefined;
-    const action = searchParams.get("action")?.trim() || undefined;
-    const actorId = searchParams.get("actorId")?.trim() || undefined;
+    const queryValidation = auditLogsQuerySchema.safeParse({
+      employeeId: searchParams.get("employeeId") ?? undefined,
+      action: searchParams.get("action") ?? undefined,
+      actorId: searchParams.get("actorId") ?? undefined,
+      page: searchParams.get("page") ?? undefined,
+      pageSize: searchParams.get("pageSize") || searchParams.get("limit") || undefined,
+    });
 
-    const pageParam = parseInt(searchParams.get("page") || "1", 10);
-    const page = Number.isFinite(pageParam) && pageParam > 0 ? pageParam : 1;
+    if (!queryValidation.success) {
+      const fieldErrors = queryValidation.error.flatten().fieldErrors;
+      const firstError = queryValidation.error.issues[0]?.message || "Invalid audit query parameters.";
+      return NextResponse.json(
+        { error: firstError, details: fieldErrors },
+        { status: 400, headers: NO_CACHE_HEADERS }
+      );
+    }
 
-    const limitParam = parseInt(
-      searchParams.get("pageSize") || searchParams.get("limit") || "25",
-      10
-    );
-    const pageSize = Number.isFinite(limitParam)
-      ? Math.min(Math.max(limitParam, 1), 100)
-      : 25;
+    const { employeeId, action, actorId, page, pageSize } = queryValidation.data;
 
     const result = await queryAuditLogs({
       employeeId,

@@ -97,9 +97,9 @@ export function ExpenseExportButton({
       link.click();
       document.body.removeChild(link);
       window.URL.revokeObjectURL(downloadUrl);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Expenses CSV export error:", err);
-      setExportError(err.message || "Failed to download expenses CSV.");
+      setExportError(err instanceof Error ? err.message : "Failed to download expenses CSV.");
     } finally {
       setIsExporting(false);
     }

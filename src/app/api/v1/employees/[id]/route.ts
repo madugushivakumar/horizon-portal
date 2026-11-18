@@ -11,6 +11,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { SafeEmployeeProfile } from "@/types/employee";
+import { SESSION_COOKIE_NAME } from "@/lib/auth/session";
+import { getAuthenticatedUserFromToken } from "@/lib/auth/user";
+import { idParamSchema } from "@/lib/validations/common";
 
 interface RouteContext {
   params: Promise<{ id: string }>;
@@ -18,16 +21,29 @@ interface RouteContext {
 
 export async function GET(request: NextRequest, context: RouteContext) {
   try {
+    // SEC-FIND-03a: Handler-level authentication
+    const token =
+      request.cookies.get(SESSION_COOKIE_NAME)?.value ||
+      request.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
+    const authResult = await getAuthenticatedUserFromToken(token);
+    if (!authResult.success) {
+      return NextResponse.json(
+        { error: authResult.message },
+        { status: authResult.status }
+      );
+    }
+
     const { id: rawId } = await context.params;
 
-    if (!rawId || typeof rawId !== "string" || rawId.trim().length === 0) {
+    const idValidation = idParamSchema.safeParse(rawId);
+    if (!idValidation.success) {
       return NextResponse.json(
         { error: "Invalid employee identifier provided." },
         { status: 400 }
       );
     }
 
-    const employeeId = decodeURIComponent(rawId).trim();
+    const employeeId = decodeURIComponent(idValidation.data).trim();
 
     const employee = await prisma.employee.findUnique({
       where: { id: employeeId },

@@ -12,28 +12,30 @@ import { NextRequest, NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { DirectoryApiResponse, SafeEmployeeSummary } from "@/types/employee";
+import { employeeDirectoryQuerySchema } from "@/lib/validations/directory";
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
 
-    // Search query parameter
-    const search = searchParams.get("search")?.trim() || "";
+    // Validate query parameters with Zod
+    const queryValidation = employeeDirectoryQuerySchema.safeParse({
+      search: searchParams.get("search") ?? undefined,
+      department: searchParams.get("department") ?? undefined,
+      page: searchParams.get("page") ?? undefined,
+      pageSize: searchParams.get("pageSize") || searchParams.get("limit") || undefined,
+    });
 
-    // Department filter parameter (ID or "all")
-    const department = searchParams.get("department")?.trim() || "";
+    if (!queryValidation.success) {
+      const fieldErrors = queryValidation.error.flatten().fieldErrors;
+      const firstError = queryValidation.error.issues[0]?.message || "Invalid query parameters.";
+      return NextResponse.json(
+        { error: firstError, details: fieldErrors },
+        { status: 400 }
+      );
+    }
 
-    // Pagination parameters
-    const pageParam = parseInt(searchParams.get("page") || "1", 10);
-    const page = Number.isFinite(pageParam) && pageParam > 0 ? pageParam : 1;
-
-    const limitParam = parseInt(
-      searchParams.get("pageSize") || searchParams.get("limit") || "12",
-      10
-    );
-    const pageSize = Number.isFinite(limitParam)
-      ? Math.min(Math.max(limitParam, 1), 100)
-      : 12;
+    const { search, department, page, pageSize } = queryValidation.data;
 
     // Construct Prisma where filter
     const whereConditions: Prisma.EmployeeWhereInput[] = [];

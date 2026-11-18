@@ -14,6 +14,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { jwtVerify } from "jose";
 import { isRouteAllowedForRole } from "@/config/navigation";
+import { applySecurityHeaders } from "@/lib/security/headers";
 
 const SESSION_COOKIE = "horizon_session";
 
@@ -33,6 +34,11 @@ function isStaticAsset(pathname: string): boolean {
 }
 
 export async function proxy(request: NextRequest) {
+  const response = await handleProxy(request);
+  return applySecurityHeaders(response);
+}
+
+async function handleProxy(request: NextRequest): Promise<NextResponse> {
   const { pathname } = request.nextUrl;
 
   // Always allow static framework assets

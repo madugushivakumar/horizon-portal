@@ -63,22 +63,27 @@ export const TopBar: React.FC<TopBarProps> = ({
   }, []);
 
   useEffect(() => {
-    fetchUnreadCount();
+    let ignore = false;
+    const execute = async () => {
+      await fetchUnreadCount();
+    };
+    void execute();
 
     // Listen to focus and visibility changes to refresh count
-    const handleFocus = () => fetchUnreadCount();
+    const handleFocus = () => void fetchUnreadCount();
     const handleVisibility = () => {
       if (document.visibilityState === "visible") {
-        fetchUnreadCount();
+        void fetchUnreadCount();
       }
     };
-    const handleCustomUpdate = () => fetchUnreadCount();
+    const handleCustomUpdate = () => void fetchUnreadCount();
 
     window.addEventListener("focus", handleFocus);
     document.addEventListener("visibilitychange", handleVisibility);
     window.addEventListener("horizon:notifications-updated", handleCustomUpdate);
 
     return () => {
+      ignore = true;
       window.removeEventListener("focus", handleFocus);
       document.removeEventListener("visibilitychange", handleVisibility);
       window.removeEventListener("horizon:notifications-updated", handleCustomUpdate);

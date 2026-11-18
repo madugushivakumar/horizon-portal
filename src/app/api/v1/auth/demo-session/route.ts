@@ -4,6 +4,14 @@ import { setSessionCookie } from "@/lib/auth/session";
 import { prisma } from "@/lib/prisma";
 
 export async function GET(request: NextRequest) {
+  // SEC-FIND-01: Disable demo session endpoint in production
+  if (process.env.NODE_ENV === "production") {
+    return NextResponse.json(
+      { error: "This endpoint is not available in production." },
+      { status: 404 }
+    );
+  }
+
   const role = request.nextUrl.searchParams.get("role") || "Employee";
   const email = request.nextUrl.searchParams.get("email");
 

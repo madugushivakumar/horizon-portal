@@ -11,6 +11,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { SESSION_COOKIE_NAME } from "@/lib/auth/session";
 import { getAuthenticatedUserFromToken } from "@/lib/auth/user";
+import { idParamSchema } from "@/lib/validations/common";
 
 const NO_CACHE_HEADERS = {
   "Cache-Control": "private, no-cache, no-store, must-revalidate",
@@ -35,14 +36,16 @@ export async function POST(request: NextRequest, context: RouteContext) {
     }
 
     const resolvedParams = await Promise.resolve(context.params);
-    const notificationId = typeof resolvedParams?.id === "string" ? resolvedParams.id.trim() : "";
+    const idValidation = idParamSchema.safeParse(resolvedParams?.id);
 
-    if (!notificationId) {
+    if (!idValidation.success) {
       return NextResponse.json(
         { error: "Invalid notification identifier." },
         { status: 400, headers: NO_CACHE_HEADERS }
       );
     }
+
+    const notificationId = idValidation.data;
 
     const userId = authResult.user.id;
 

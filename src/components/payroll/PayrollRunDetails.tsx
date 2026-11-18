@@ -143,7 +143,14 @@ export default function PayrollRunDetails({ runId, currentUser }: PayrollRunDeta
   }, [runId, page, pageSize, debouncedSearch]);
 
   useEffect(() => {
-    fetchRunDetails();
+    let ignore = false;
+    const execute = async () => {
+      await fetchRunDetails();
+    };
+    void execute();
+    return () => {
+      ignore = true;
+    };
   }, [fetchRunDetails]);
 
   // Handle Approval Action

@@ -11,9 +11,11 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { SESSION_COOKIE_NAME } from "@/lib/auth/session";
 import { getAuthenticatedUserFromToken } from "@/lib/auth/user";
+import { teamAttendanceQuerySchema } from "@/lib/validations/attendance";
 
 const NO_CACHE_HEADERS = {
   "Cache-Control": "private, no-cache, no-store, must-revalidate",
@@ -44,6 +46,22 @@ export async function GET(request: NextRequest) {
     }
 
     const searchParams = request.nextUrl.searchParams;
+
+    const queryValidation = teamAttendanceQuerySchema.safeParse({
+      year: searchParams.get("year") ?? undefined,
+      month: searchParams.get("month") ?? undefined,
+      department: searchParams.get("department") ?? undefined,
+    });
+
+    if (!queryValidation.success) {
+      const fieldErrors = queryValidation.error.flatten().fieldErrors;
+      const firstError = queryValidation.error.issues[0]?.message || "Invalid attendance query parameters.";
+      return NextResponse.json(
+        { error: firstError, details: fieldErrors },
+        { status: 400, headers: NO_CACHE_HEADERS }
+      );
+    }
+
     const yearParam = searchParams.get("year");
     const monthParam = searchParams.get("month");
     const departmentFilter = searchParams.get("department");
@@ -68,7 +86,7 @@ export async function GET(request: NextRequest) {
     const periodEndStr = periodEndDate.toISOString().split("T")[0];
 
     // Determine target employees based on role
-    const employeeWhere: any = {};
+    const employeeWhere: Prisma.EmployeeWhereInput = {};
 
     if (role === "Manager") {
       if (!employeeId) {

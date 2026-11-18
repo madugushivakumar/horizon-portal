@@ -92,7 +92,14 @@ export const NotificationsInbox: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    fetchInboxData();
+    let ignore = false;
+    const execute = async () => {
+      await fetchInboxData();
+    };
+    void execute();
+    return () => {
+      ignore = true;
+    };
   }, [fetchInboxData]);
 
   // Mark single notification as read

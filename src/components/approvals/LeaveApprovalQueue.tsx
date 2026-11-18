@@ -180,7 +180,14 @@ export function LeaveApprovalQueue() {
   }, [activeTab, debouncedSearch, selectedDept, selectedType, pagination.page, pagination.pageSize, sortBy, sortOrder]);
 
   useEffect(() => {
-    fetchRequests();
+    let ignore = false;
+    const execute = async () => {
+      await fetchRequests();
+    };
+    void execute();
+    return () => {
+      ignore = true;
+    };
   }, [fetchRequests]);
 
   // Handle Tab Change
@@ -293,8 +300,8 @@ export function LeaveApprovalQueue() {
   // Helper for Leave Type Badge
   const renderLeaveTypeBadge = (code: string, name: string) => {
     const c = code.toUpperCase();
-    let variant: "primary" | "info" | "secondary" | "warning" = "primary";
-    if (c === "SL") variant = "danger" as any;
+    let variant: "primary" | "info" | "secondary" | "warning" | "danger" = "primary";
+    if (c === "SL") variant = "danger";
     else if (c === "CL") variant = "info";
     else if (c === "EL") variant = "primary";
     else if (c === "LOP") variant = "secondary";

@@ -46,6 +46,7 @@ export function EmployeeAuditModal({
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    let ignore = false;
     async function fetchAuditTrail() {
       if (!isOpen || !employeeId) return;
 
@@ -61,15 +62,24 @@ export function EmployeeAuditModal({
           throw new Error(errData.error || "Failed to load audit history.");
         }
         const json = await res.json();
-        setLogs(json.data || []);
-      } catch (err: any) {
-        setError(err.message || "An unexpected error occurred.");
+        if (!ignore) {
+          setLogs(json.data || []);
+        }
+      } catch (err: unknown) {
+        if (!ignore) {
+          setError(err instanceof Error ? err.message : "An unexpected error occurred.");
+        }
       } finally {
-        setLoading(false);
+        if (!ignore) {
+          setLoading(false);
+        }
       }
     }
 
-    fetchAuditTrail();
+    void fetchAuditTrail();
+    return () => {
+      ignore = true;
+    };
   }, [isOpen, employeeId]);
 
   if (!isOpen || !employeeId) return null;

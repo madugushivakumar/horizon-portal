@@ -10,6 +10,7 @@ import { SESSION_COOKIE_NAME } from "@/lib/auth/session";
 import { getAuthenticatedUserFromToken } from "@/lib/auth/user";
 import { calculateWorkingDays } from "@/lib/leave/calculations";
 import { notify } from "@/lib/notifications/notify";
+import { leaveRequestInputSchema } from "@/lib/validations/leave";
 
 export async function GET(request: NextRequest) {
   try {
@@ -97,20 +98,19 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Invalid request payload." }, { status: 400 });
     }
 
-    const { leaveTypeCode, startDate, endDate, reason } = body;
-
-    // 1. Validate required fields
-    if (!leaveTypeCode || typeof leaveTypeCode !== "string" || !leaveTypeCode.trim()) {
-      return NextResponse.json({ error: "Leave type is required." }, { status: 400 });
+    // 1. Validate payload with Zod
+    const validation = leaveRequestInputSchema.safeParse(body);
+    if (!validation.success) {
+      const fieldErrors = validation.error.flatten().fieldErrors;
+      const firstErrorMessage =
+        validation.error.issues[0]?.message || "Validation failed for leave request.";
+      return NextResponse.json(
+        { error: firstErrorMessage, details: fieldErrors },
+        { status: 400 }
+      );
     }
 
-    if (!startDate || typeof startDate !== "string" || !startDate.trim()) {
-      return NextResponse.json({ error: "Start date is required." }, { status: 400 });
-    }
-
-    if (!endDate || typeof endDate !== "string" || !endDate.trim()) {
-      return NextResponse.json({ error: "End date is required." }, { status: 400 });
-    }
+    const { leaveTypeCode, startDate, endDate, reason } = validation.data;
 
     // 2. Validate leave type exists in database
     const code = leaveTypeCode.trim().toUpperCase();

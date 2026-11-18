@@ -15,6 +15,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { SESSION_COOKIE_NAME } from "@/lib/auth/session";
 import { getAuthenticatedUserFromToken } from "@/lib/auth/user";
 import { rejectLeaveRequest } from "@/lib/leave/approval-service";
+import { leaveRejectionSchema } from "@/lib/validations/leave";
+import { idParamSchema } from "@/lib/validations/common";
 
 const NO_CACHE_HEADERS = {
   "Cache-Control": "private, no-cache, no-store, must-revalidate",
@@ -27,7 +29,15 @@ export async function POST(
   context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = await context.params;
+    const { id: rawId } = await context.params;
+    const idValidation = idParamSchema.safeParse(rawId);
+    if (!idValidation.success) {
+      return NextResponse.json(
+        { error: "Invalid leave request identifier provided." },
+        { status: 400, headers: NO_CACHE_HEADERS }
+      );
+    }
+    const id = idValidation.data;
 
     const token =
       request.cookies.get(SESSION_COOKIE_NAME)?.value ||
@@ -56,13 +66,19 @@ export async function POST(
       );
     }
 
-    const { reason } = body;
-    if (typeof reason !== "string" || !reason.trim()) {
+    const validation = leaveRejectionSchema.safeParse(body);
+    if (!validation.success) {
+      const fieldErrors = validation.error.flatten().fieldErrors;
+      const firstErrorMessage =
+        validation.error.issues[0]?.message ||
+        "A valid rejection reason is mandatory. Whitespace-only reasons are not accepted.";
       return NextResponse.json(
-        { error: "A valid rejection reason is mandatory. Whitespace-only reasons are not accepted." },
+        { error: firstErrorMessage, details: fieldErrors },
         { status: 400, headers: NO_CACHE_HEADERS }
       );
     }
+
+    const { reason } = validation.data;
 
     const result = await rejectLeaveRequest(authResult.user, id, reason);
 

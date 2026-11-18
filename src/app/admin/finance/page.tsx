@@ -34,7 +34,7 @@ export default async function AdminFinancePage() {
 
   if (!isAuthorizedAdmin(user)) {
     return (
-      <AppShell initialUser={user as any}>
+      <AppShell initialUser={user}>
         <div className="p-8 max-w-2xl mx-auto text-center my-12">
           <div className="rounded-2xl border border-rose-200 dark:border-rose-900 bg-rose-50/50 dark:bg-rose-950/20 p-8 shadow-xs">
             <div className="w-12 h-12 rounded-full bg-rose-100 dark:bg-rose-900/40 text-rose-600 dark:text-rose-400 mx-auto flex items-center justify-center mb-3.5">
@@ -62,8 +62,8 @@ export default async function AdminFinancePage() {
   }
 
   return (
-    <AppShell initialUser={user as any}>
-      <AdminFinanceConsole initialUser={user as any} />
+    <AppShell initialUser={user}>
+      <AdminFinanceConsole initialUser={user} />
     </AppShell>
   );
 }

@@ -5,11 +5,13 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { SESSION_COOKIE_NAME } from "@/lib/auth/session";
 import { getAuthenticatedUserFromToken } from "@/lib/auth/user";
 import { validateDelegationChain } from "@/lib/leave/approval-service";
 import { getActorSnapshot, generateAuditEventId } from "@/lib/audit/audit-logger";
+import { managerDelegationSchema } from "@/lib/validations/leave";
 
 const NO_CACHE_HEADERS = {
   "Cache-Control": "private, no-cache, no-store, must-revalidate",
@@ -38,7 +40,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const where: any = {};
+    const where: Prisma.ManagerDelegationWhereInput = {};
     if (authResult.user.role === "Manager" && authResult.user.employeeId) {
       where.OR = [
         { managerId: authResult.user.employeeId },
@@ -138,31 +140,28 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { managerId: requestedManagerId, actingManagerId, startDate, endDate, reason } = body;
+    const validation = managerDelegationSchema.safeParse(body);
+    if (!validation.success) {
+      const fieldErrors = validation.error.flatten().fieldErrors;
+      const firstErrorMessage =
+        validation.error.issues[0]?.message || "Validation failed for delegation.";
+      return NextResponse.json(
+        { error: firstErrorMessage, details: fieldErrors },
+        { status: 400, headers: NO_CACHE_HEADERS }
+      );
+    }
+
+    const { managerId: requestedManagerId, actingManagerId, startDate, endDate, reason } = validation.data;
 
     // Resolve which manager is delegating
-    let managerId = requestedManagerId;
+    let managerId: string | null | undefined = requestedManagerId;
     if (authResult.user.role === "Manager") {
       managerId = authResult.user.employeeId;
     }
 
-    if (!managerId || typeof managerId !== "string") {
+    if (!managerId) {
       return NextResponse.json(
         { error: "Original manager ID is required." },
-        { status: 400, headers: NO_CACHE_HEADERS }
-      );
-    }
-
-    if (!actingManagerId || typeof actingManagerId !== "string") {
-      return NextResponse.json(
-        { error: "Acting manager ID is required." },
-        { status: 400, headers: NO_CACHE_HEADERS }
-      );
-    }
-
-    if (!startDate || !endDate) {
-      return NextResponse.json(
-        { error: "Start date and end date are required." },
         { status: 400, headers: NO_CACHE_HEADERS }
       );
     }

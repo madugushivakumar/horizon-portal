@@ -150,10 +150,10 @@ export function InvoiceRegister({ reportingDate }: InvoiceRegisterProps) {
 
         setItems(json.data.items || []);
         setPagination(json.data.pagination || DEFAULT_PAGINATION);
-      } catch (err: any) {
+      } catch (err: unknown) {
         if (currentReqId === requestIdRef.current) {
           console.error("Fetch invoices error:", err);
-          setError(err.message || "Failed to retrieve invoice records.");
+          setError(err instanceof Error ? err.message : "Failed to retrieve invoice records.");
         }
       } finally {
         if (currentReqId === requestIdRef.current) {
@@ -166,7 +166,14 @@ export function InvoiceRegister({ reportingDate }: InvoiceRegisterProps) {
 
   // 3. Trigger fetch whenever filters, debounced search, or reportingDate changes
   useEffect(() => {
-    fetchInvoices(pagination.page);
+    let ignore = false;
+    const execute = async () => {
+      await fetchInvoices(pagination.page);
+    };
+    void execute();
+    return () => {
+      ignore = true;
+    };
   }, [fetchInvoices, pagination.page]);
 
   // 4. Filter Handlers

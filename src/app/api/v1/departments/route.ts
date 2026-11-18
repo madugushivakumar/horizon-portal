@@ -5,11 +5,26 @@
  * Returns departments from the database for directory filtering and organizational grouping.
  */
 
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { unstable_rethrow } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import { SESSION_COOKIE_NAME } from "@/lib/auth/session";
+import { getAuthenticatedUserFromToken } from "@/lib/auth/user";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    // SEC-FIND-03b: Handler-level authentication
+    const token =
+      request.cookies.get(SESSION_COOKIE_NAME)?.value ||
+      request.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
+    const authResult = await getAuthenticatedUserFromToken(token);
+    if (!authResult.success) {
+      return NextResponse.json(
+        { error: authResult.message },
+        { status: authResult.status }
+      );
+    }
+
     const departments = await prisma.department.findMany({
       orderBy: { name: "asc" },
       select: {
@@ -35,6 +50,16 @@ export async function GET() {
 
     return NextResponse.json({ data }, { status: 200 });
   } catch (error) {
+    unstable_rethrow(error);
+    if (
+      typeof error === "object" &&
+      error !== null &&
+      "digest" in error &&
+      typeof (error as { digest?: unknown }).digest === "string" &&
+      (error as { digest: string }).digest.startsWith("NEXT_")
+    ) {
+      throw error;
+    }
     console.error("Departments API error:", error);
     return NextResponse.json(
       { error: "Failed to load departments." },
