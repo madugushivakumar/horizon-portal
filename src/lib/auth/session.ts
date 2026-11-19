@@ -16,12 +16,17 @@ export const SESSION_MAX_AGE_SECONDS = 8 * 60 * 60; // 8 hours
  * Returns security cookie attributes configured for the current environment.
  */
 export function getSessionCookieOptions() {
-  const isProduction = process.env.NODE_ENV === "production";
+  const isSecure =
+    process.env.NODE_ENV === "production" ||
+    process.env.VERCEL_ENV === "preview" ||
+    process.env.VERCEL_ENV === "production" ||
+    Boolean(process.env.VERCEL);
+
   return {
     name: SESSION_COOKIE_NAME,
     httpOnly: true,
     sameSite: "lax" as const,
-    secure: isProduction,
+    secure: isSecure,
     path: "/",
     maxAge: SESSION_MAX_AGE_SECONDS,
   };

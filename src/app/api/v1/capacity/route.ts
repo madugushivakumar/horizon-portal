@@ -20,6 +20,7 @@ import { SESSION_COOKIE_NAME } from "@/lib/auth/session";
 import { getAuthenticatedUserFromToken } from "@/lib/auth/user";
 import { NO_CACHE_HEADERS, resolveUserCapacityScope } from "@/lib/capacity/auth";
 import { capacityQuerySchema } from "@/lib/validations/capacity";
+import { createValidationErrorResponse } from "@/lib/validations/common";
 import {
   calculateOverlappingLeaveWorkingDays,
   calculateWorkingDaysInRange,
@@ -61,11 +62,7 @@ export async function GET(request: NextRequest) {
 
     const parsedQuery = capacityQuerySchema.safeParse(rawQuery);
     if (!parsedQuery.success) {
-      const firstError = parsedQuery.error.issues[0]?.message || "Invalid query parameters.";
-      return NextResponse.json(
-        { error: firstError },
-        { status: 400, headers: NO_CACHE_HEADERS }
-      );
+      return createValidationErrorResponse(parsedQuery.error, undefined, NO_CACHE_HEADERS);
     }
 
     const { sprintId, teamId, page, pageSize } = parsedQuery.data;

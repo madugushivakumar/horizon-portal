@@ -11,6 +11,7 @@ import { SESSION_COOKIE_NAME } from "@/lib/auth/session";
 import { getAuthenticatedUserFromToken } from "@/lib/auth/user";
 import { queryAuditLogs } from "@/lib/audit/audit-logger";
 import { auditLogsQuerySchema } from "@/lib/validations/audit";
+import { createValidationErrorResponse } from "@/lib/validations/common";
 
 const NO_CACHE_HEADERS = {
   "Cache-Control": "private, no-cache, no-store, must-revalidate",
@@ -51,12 +52,7 @@ export async function GET(request: NextRequest) {
     });
 
     if (!queryValidation.success) {
-      const fieldErrors = queryValidation.error.flatten().fieldErrors;
-      const firstError = queryValidation.error.issues[0]?.message || "Invalid audit query parameters.";
-      return NextResponse.json(
-        { error: firstError, details: fieldErrors },
-        { status: 400, headers: NO_CACHE_HEADERS }
-      );
+      return createValidationErrorResponse(queryValidation.error, undefined, NO_CACHE_HEADERS);
     }
 
     const { employeeId, action, actorId, page, pageSize } = queryValidation.data;

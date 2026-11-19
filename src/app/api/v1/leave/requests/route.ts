@@ -11,10 +11,13 @@ import { getAuthenticatedUserFromToken } from "@/lib/auth/user";
 import { calculateWorkingDays } from "@/lib/leave/calculations";
 import { notify } from "@/lib/notifications/notify";
 import { leaveRequestInputSchema } from "@/lib/validations/leave";
+import { createValidationErrorResponse } from "@/lib/validations/common";
 
 export async function GET(request: NextRequest) {
   try {
-    const token = request.cookies.get(SESSION_COOKIE_NAME)?.value;
+    const token =
+      request.cookies.get(SESSION_COOKIE_NAME)?.value ||
+      request.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
     const authResult = await getAuthenticatedUserFromToken(token);
 
     if (!authResult.success) {
@@ -78,7 +81,9 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const token = request.cookies.get(SESSION_COOKIE_NAME)?.value;
+    const token =
+      request.cookies.get(SESSION_COOKIE_NAME)?.value ||
+      request.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
     const authResult = await getAuthenticatedUserFromToken(token);
 
     if (!authResult.success) {
@@ -95,19 +100,13 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json().catch(() => null);
     if (!body || typeof body !== "object") {
-      return NextResponse.json({ error: "Invalid request payload." }, { status: 400 });
+      return createValidationErrorResponse("Invalid request payload.");
     }
 
     // 1. Validate payload with Zod
     const validation = leaveRequestInputSchema.safeParse(body);
     if (!validation.success) {
-      const fieldErrors = validation.error.flatten().fieldErrors;
-      const firstErrorMessage =
-        validation.error.issues[0]?.message || "Validation failed for leave request.";
-      return NextResponse.json(
-        { error: firstErrorMessage, details: fieldErrors },
-        { status: 400 }
-      );
+      return createValidationErrorResponse(validation.error);
     }
 
     const { leaveTypeCode, startDate, endDate, reason } = validation.data;

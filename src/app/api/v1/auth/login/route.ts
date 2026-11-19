@@ -13,6 +13,7 @@ import { verifyPassword } from "@/lib/auth/password";
 import { createAuthToken } from "@/lib/auth/token";
 import { setSessionCookie } from "@/lib/auth/session";
 import { loginInputSchema } from "@/lib/validations/auth";
+import { createValidationErrorResponse } from "@/lib/validations/common";
 import {
   checkLoginRateLimit,
   recordFailedLoginAttempt,
@@ -27,21 +28,12 @@ export async function POST(request: NextRequest) {
     try {
       body = await request.json();
     } catch {
-      return NextResponse.json(
-        { error: "Invalid request payload. Expected JSON body." },
-        { status: 400 }
-      );
+      return createValidationErrorResponse("Invalid request payload. Expected JSON body.");
     }
 
     const validation = loginInputSchema.safeParse(body);
     if (!validation.success) {
-      const fieldErrors = validation.error.flatten().fieldErrors;
-      const firstErrorMessage =
-        validation.error.issues[0]?.message || "Email and password are required.";
-      return NextResponse.json(
-        { error: firstErrorMessage, details: fieldErrors },
-        { status: 400 }
-      );
+      return createValidationErrorResponse(validation.error);
     }
 
     const { email: normalizedEmail, password } = validation.data;

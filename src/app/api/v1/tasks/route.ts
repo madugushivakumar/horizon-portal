@@ -17,6 +17,7 @@ import { prisma } from "@/lib/prisma";
 import { SESSION_COOKIE_NAME } from "@/lib/auth/session";
 import { getAuthenticatedUserFromToken } from "@/lib/auth/user";
 import { taskQuerySchema } from "@/lib/validations/task";
+import { createValidationErrorResponse } from "@/lib/validations/common";
 import {
   getTaskRoleScope,
   NO_CACHE_HEADERS,
@@ -51,11 +52,7 @@ export async function GET(request: NextRequest) {
 
     const parsedQuery = taskQuerySchema.safeParse(rawQuery);
     if (!parsedQuery.success) {
-      const firstError = parsedQuery.error.issues[0]?.message || "Invalid query parameters.";
-      return NextResponse.json(
-        { error: firstError },
-        { status: 400, headers: NO_CACHE_HEADERS }
-      );
+      return createValidationErrorResponse(parsedQuery.error, undefined, NO_CACHE_HEADERS);
     }
 
     const { departmentId, teamId, sprintId, page, pageSize } = parsedQuery.data;

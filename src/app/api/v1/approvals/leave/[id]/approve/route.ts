@@ -14,7 +14,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { SESSION_COOKIE_NAME } from "@/lib/auth/session";
 import { getAuthenticatedUserFromToken } from "@/lib/auth/user";
 import { approveLeaveRequest } from "@/lib/leave/approval-service";
-import { idParamSchema } from "@/lib/validations/common";
+import { logSecurityIncident } from "@/lib/security/audit";
+import { idParamSchema, createValidationErrorResponse } from "@/lib/validations/common";
 import { leaveApprovalSchema } from "@/lib/validations/leave";
 
 const NO_CACHE_HEADERS = {
@@ -31,10 +32,7 @@ export async function POST(
     const { id: rawId } = await context.params;
     const idValidation = idParamSchema.safeParse(rawId);
     if (!idValidation.success) {
-      return NextResponse.json(
-        { error: "Invalid leave request identifier provided." },
-        { status: 400, headers: NO_CACHE_HEADERS }
-      );
+      return createValidationErrorResponse(idValidation.error, undefined, NO_CACHE_HEADERS);
     }
     const id = idValidation.data;
 
@@ -51,6 +49,19 @@ export async function POST(
     }
 
     if (authResult.user.role === "Employee") {
+      logSecurityIncident({
+        event: "UNAUTHORIZED_ACCESS",
+        resourceType: "LEAVE_REQUEST",
+        actorId: authResult.user.id,
+        actorEmail: authResult.user.email,
+        actorRole: authResult.user.role,
+        targetResourceId: id,
+        route: "/api/v1/approvals/leave/[id]/approve",
+        method: "POST",
+        status: 403,
+        reason: "Employee role attempted to approve leave request.",
+      });
+
       return NextResponse.json(
         { error: "Forbidden: Employees cannot approve leave requests." },
         { status: 403, headers: NO_CACHE_HEADERS }
@@ -60,6 +71,20 @@ export async function POST(
     const result = await approveLeaveRequest(authResult.user, id);
 
     if (!result.success) {
+      if (result.statusCode === 403) {
+        logSecurityIncident({
+          event: "IDOR_ACCESS_DENIED",
+          resourceType: "LEAVE_REQUEST",
+          actorId: authResult.user.id,
+          actorEmail: authResult.user.email,
+          actorRole: authResult.user.role,
+          targetResourceId: id,
+          route: "/api/v1/approvals/leave/[id]/approve",
+          method: "POST",
+          status: 403,
+          reason: result.message,
+        });
+      }
       return NextResponse.json(
         { error: result.message },
         { status: result.statusCode, headers: NO_CACHE_HEADERS }

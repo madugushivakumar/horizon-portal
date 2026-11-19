@@ -15,6 +15,7 @@ import { prisma } from "@/lib/prisma";
 import { SESSION_COOKIE_NAME } from "@/lib/auth/session";
 import { getAuthenticatedUserFromToken } from "@/lib/auth/user";
 import { employeeCreateSchema } from "@/lib/validations/employee";
+import { createValidationErrorResponse } from "@/lib/validations/common";
 import {
   getActorSnapshot,
   logEmployeeCreation,
@@ -301,24 +302,16 @@ export async function POST(request: NextRequest) {
     try {
       body = await request.json();
     } catch {
-      return NextResponse.json(
-        { error: "Invalid JSON request body." },
-        { status: 400, headers: NO_CACHE_HEADERS }
+      return createValidationErrorResponse(
+        "Invalid JSON request body.",
+        undefined,
+        NO_CACHE_HEADERS
       );
     }
 
     const validation = employeeCreateSchema.safeParse(body);
     if (!validation.success) {
-      const fieldErrors = validation.error.flatten().fieldErrors;
-      const firstErrorMessage =
-        Object.values(fieldErrors)[0]?.[0] || "Validation failed for employee data.";
-      return NextResponse.json(
-        {
-          error: firstErrorMessage,
-          details: fieldErrors,
-        },
-        { status: 400, headers: NO_CACHE_HEADERS }
-      );
+      return createValidationErrorResponse(validation.error, undefined, NO_CACHE_HEADERS);
     }
 
     const input = validation.data;

@@ -15,8 +15,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { SESSION_COOKIE_NAME } from "@/lib/auth/session";
 import { getAuthenticatedUserFromToken } from "@/lib/auth/user";
 import { rejectLeaveRequest } from "@/lib/leave/approval-service";
+import { logSecurityIncident } from "@/lib/security/audit";
 import { leaveRejectionSchema } from "@/lib/validations/leave";
-import { idParamSchema } from "@/lib/validations/common";
+import { idParamSchema, createValidationErrorResponse } from "@/lib/validations/common";
 
 const NO_CACHE_HEADERS = {
   "Cache-Control": "private, no-cache, no-store, must-revalidate",
@@ -32,10 +33,7 @@ export async function POST(
     const { id: rawId } = await context.params;
     const idValidation = idParamSchema.safeParse(rawId);
     if (!idValidation.success) {
-      return NextResponse.json(
-        { error: "Invalid leave request identifier provided." },
-        { status: 400, headers: NO_CACHE_HEADERS }
-      );
+      return createValidationErrorResponse(idValidation.error, undefined, NO_CACHE_HEADERS);
     }
     const id = idValidation.data;
 
@@ -52,6 +50,19 @@ export async function POST(
     }
 
     if (authResult.user.role === "Employee") {
+      logSecurityIncident({
+        event: "UNAUTHORIZED_ACCESS",
+        resourceType: "LEAVE_REQUEST",
+        actorId: authResult.user.id,
+        actorEmail: authResult.user.email,
+        actorRole: authResult.user.role,
+        targetResourceId: id,
+        route: "/api/v1/approvals/leave/[id]/reject",
+        method: "POST",
+        status: 403,
+        reason: "Employee role attempted to reject leave request.",
+      });
+
       return NextResponse.json(
         { error: "Forbidden: Employees cannot reject leave requests." },
         { status: 403, headers: NO_CACHE_HEADERS }
@@ -60,22 +71,16 @@ export async function POST(
 
     const body = await request.json().catch(() => null);
     if (!body || typeof body !== "object") {
-      return NextResponse.json(
-        { error: "Invalid request payload. Expected JSON object with 'reason'." },
-        { status: 400, headers: NO_CACHE_HEADERS }
+      return createValidationErrorResponse(
+        "Invalid request payload. Expected JSON object with 'reason'.",
+        undefined,
+        NO_CACHE_HEADERS
       );
     }
 
     const validation = leaveRejectionSchema.safeParse(body);
     if (!validation.success) {
-      const fieldErrors = validation.error.flatten().fieldErrors;
-      const firstErrorMessage =
-        validation.error.issues[0]?.message ||
-        "A valid rejection reason is mandatory. Whitespace-only reasons are not accepted.";
-      return NextResponse.json(
-        { error: firstErrorMessage, details: fieldErrors },
-        { status: 400, headers: NO_CACHE_HEADERS }
-      );
+      return createValidationErrorResponse(validation.error, undefined, NO_CACHE_HEADERS);
     }
 
     const { reason } = validation.data;
@@ -83,6 +88,20 @@ export async function POST(
     const result = await rejectLeaveRequest(authResult.user, id, reason);
 
     if (!result.success) {
+      if (result.statusCode === 403) {
+        logSecurityIncident({
+          event: "IDOR_ACCESS_DENIED",
+          resourceType: "LEAVE_REQUEST",
+          actorId: authResult.user.id,
+          actorEmail: authResult.user.email,
+          actorRole: authResult.user.role,
+          targetResourceId: id,
+          route: "/api/v1/approvals/leave/[id]/reject",
+          method: "POST",
+          status: 403,
+          reason: result.message,
+        });
+      }
       return NextResponse.json(
         { error: result.message },
         { status: result.statusCode, headers: NO_CACHE_HEADERS }

@@ -13,7 +13,7 @@ import { prisma } from "@/lib/prisma";
 import { SafeEmployeeProfile } from "@/types/employee";
 import { SESSION_COOKIE_NAME } from "@/lib/auth/session";
 import { getAuthenticatedUserFromToken } from "@/lib/auth/user";
-import { idParamSchema } from "@/lib/validations/common";
+import { idParamSchema, createValidationErrorResponse } from "@/lib/validations/common";
 
 interface RouteContext {
   params: Promise<{ id: string }>;
@@ -37,10 +37,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
 
     const idValidation = idParamSchema.safeParse(rawId);
     if (!idValidation.success) {
-      return NextResponse.json(
-        { error: "Invalid employee identifier provided." },
-        { status: 400 }
-      );
+      return createValidationErrorResponse(idValidation.error);
     }
 
     const employeeId = decodeURIComponent(idValidation.data).trim();

@@ -24,6 +24,28 @@ const isPostgres = Boolean(
 );
 
 function createClient(): SqliteClient {
+  // Fail-closed guard: enforce Preview environment isolation and reject Production endpoint
+  if (process.env.VERCEL_ENV === "preview") {
+    if (!process.env.DATABASE_URL) {
+      throw new Error(
+        "CONFIGURATION ERROR: VERCEL_ENV is 'preview' but DATABASE_URL is missing. Preview requires dedicated Preview PostgreSQL credentials."
+      );
+    }
+    if (process.env.DATABASE_URL.includes("ep-broad-hall-b3dtqwdp")) {
+      throw new Error(
+        "SECURITY VIOLATION: Vercel Preview environment is configured with Production PostgreSQL endpoint (ep-broad-hall-b3dtqwdp). Refusing to connect to prevent accidental production state mutation."
+      );
+    }
+    if (
+      process.env.EXPECTED_PREVIEW_ENDPOINT &&
+      !process.env.DATABASE_URL.includes(process.env.EXPECTED_PREVIEW_ENDPOINT)
+    ) {
+      throw new Error(
+        `SECURITY VIOLATION: Preview database endpoint mismatch. Expected endpoint matching '${process.env.EXPECTED_PREVIEW_ENDPOINT}'.`
+      );
+    }
+  }
+
   const logOptions =
     process.env.NODE_ENV === "development" ? ["query", "error", "warn"] : ["error"];
 

@@ -15,7 +15,8 @@ import { prisma } from "@/lib/prisma";
 import { SESSION_COOKIE_NAME } from "@/lib/auth/session";
 import { getAuthenticatedUserFromToken } from "@/lib/auth/user";
 import { logPayslipAccess } from "@/lib/payroll/audit";
-import { idParamSchema } from "@/lib/validations/common";
+import { logSecurityIncident } from "@/lib/security/audit";
+import { idParamSchema, createValidationErrorResponse } from "@/lib/validations/common";
 
 const NO_CACHE_HEADERS = {
   "Cache-Control": "private, no-cache, no-store, must-revalidate",
@@ -33,10 +34,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
     const runIdValidation = idParamSchema.safeParse(rawRunId);
 
     if (!runIdValidation.success) {
-      return NextResponse.json(
-        { error: "Invalid payroll run identifier." },
-        { status: 400, headers: NO_CACHE_HEADERS }
-      );
+      return createValidationErrorResponse(runIdValidation.error, undefined, NO_CACHE_HEADERS);
     }
 
     const run_id = runIdValidation.data;
@@ -190,6 +188,20 @@ export async function GET(request: NextRequest, context: RouteContext) {
         recordIdentifier: run_id,
         action: "VIEW_PAYSLIP_DETAIL",
         outcome: "FORBIDDEN",
+      });
+
+      logSecurityIncident({
+        event: "IDOR_ACCESS_DENIED",
+        resourceType: "PAYSLIP",
+        actorId: user.id,
+        actorEmail: user.email,
+        actorRole: user.role,
+        targetResourceId: run_id,
+        resourceOwnerId: foreignPayslip.employeeId,
+        route: "/api/v1/payslips/[run_id]",
+        method: "GET",
+        status: 403,
+        reason: "Cross-employee payslip access attempt rejected.",
       });
 
       return NextResponse.json(

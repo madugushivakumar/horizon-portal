@@ -6,6 +6,7 @@
  */
 
 import { z } from "zod";
+import { NextResponse } from "next/server";
 
 /**
  * Standard identifier parameter (route params, IDs)
@@ -65,3 +66,41 @@ export const dateRangeQuerySchema = z.object({
     .regex(/^\d{4}-\d{2}-\d{2}$/, "endDate must be in YYYY-MM-DD format.")
     .optional(),
 });
+
+/**
+ * Standardized HTTP 422 Unprocessable Entity validation error response.
+ * Returns structured validation details while keeping `error` as a string for frontend display compatibility.
+ */
+export function createValidationErrorResponse(
+  errorOrMessage: z.ZodError | string,
+  details?: Record<string, unknown> | unknown[],
+  customHeaders?: Record<string, string>
+) {
+  let message = "Request validation failed.";
+  let fieldErrors: unknown = details ?? [];
+
+  if (typeof errorOrMessage === "string") {
+    message = errorOrMessage;
+  } else if (errorOrMessage && "issues" in errorOrMessage) {
+    message = errorOrMessage.issues[0]?.message || "Request validation failed.";
+    fieldErrors = errorOrMessage.flatten().fieldErrors;
+  }
+
+  return NextResponse.json(
+    {
+      success: false,
+      error: message,
+      code: "VALIDATION_ERROR",
+      details: fieldErrors,
+    },
+    {
+      status: 422,
+      headers: {
+        "Cache-Control": "private, no-cache, no-store, must-revalidate",
+        Pragma: "no-cache",
+        Expires: "0",
+        ...(customHeaders || {}),
+      },
+    }
+  );
+}

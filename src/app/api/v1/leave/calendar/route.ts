@@ -11,6 +11,7 @@ import { prisma } from "@/lib/prisma";
 import { SESSION_COOKIE_NAME } from "@/lib/auth/session";
 import { getAuthenticatedUserFromToken } from "@/lib/auth/user";
 import { leaveCalendarQuerySchema } from "@/lib/validations/leave";
+import { createValidationErrorResponse } from "@/lib/validations/common";
 
 export async function GET(request: NextRequest) {
   try {
@@ -37,12 +38,7 @@ export async function GET(request: NextRequest) {
     });
 
     if (!queryValidation.success) {
-      const fieldErrors = queryValidation.error.flatten().fieldErrors;
-      const firstError = queryValidation.error.issues[0]?.message || "Invalid calendar query parameters.";
-      return NextResponse.json(
-        { error: firstError, details: fieldErrors },
-        { status: 400 }
-      );
+      return createValidationErrorResponse(queryValidation.error);
     }
 
     const yearParam = searchParams.get("year");
