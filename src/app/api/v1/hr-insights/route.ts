@@ -20,6 +20,7 @@ import { SESSION_COOKIE_NAME } from "@/lib/auth/session";
 import { getAuthenticatedUserFromToken } from "@/lib/auth/user";
 import { NO_CACHE_HEADERS, verifyHRInsightsAccess } from "@/lib/hr-insights/auth";
 import { hrInsightsQuerySchema } from "@/lib/validations/hr-insights";
+import { createValidationErrorResponse } from "@/lib/validations/common";
 import {
   calculateAttritionInsights,
   calculatePayrollAnomalyInsights,
@@ -57,13 +58,7 @@ export async function GET(request: NextRequest) {
 
     const parsedQuery = hrInsightsQuerySchema.safeParse(rawQuery);
     if (!parsedQuery.success) {
-      return NextResponse.json(
-        {
-          error: "Invalid query parameters.",
-          details: parsedQuery.error.format(),
-        },
-        { status: 400, headers: NO_CACHE_HEADERS }
-      );
+      return createValidationErrorResponse(parsedQuery.error, undefined, NO_CACHE_HEADERS);
     }
 
     const { departmentId } = parsedQuery.data;

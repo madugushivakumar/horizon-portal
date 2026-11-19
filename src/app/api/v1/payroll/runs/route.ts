@@ -20,6 +20,7 @@ import { SESSION_COOKIE_NAME } from "@/lib/auth/session";
 import { getAuthenticatedUserFromToken } from "@/lib/auth/user";
 import { reconcilePayrollRun } from "@/lib/payroll/reconciliation-service";
 import { payrollRunsQuerySchema } from "@/lib/validations/payroll";
+import { createValidationErrorResponse } from "@/lib/validations/common";
 
 const NO_CACHE_HEADERS = {
   "Cache-Control": "private, no-cache, no-store, must-revalidate",
@@ -60,12 +61,7 @@ export async function GET(request: NextRequest) {
     });
 
     if (!queryValidation.success) {
-      const fieldErrors = queryValidation.error.flatten().fieldErrors;
-      const firstError = queryValidation.error.issues[0]?.message || "Invalid query parameters.";
-      return NextResponse.json(
-        { error: firstError, details: fieldErrors },
-        { status: 400, headers: NO_CACHE_HEADERS }
-      );
+      return createValidationErrorResponse(queryValidation.error, undefined, NO_CACHE_HEADERS);
     }
 
     const { search, status: statusFilter, page, pageSize } = queryValidation.data;

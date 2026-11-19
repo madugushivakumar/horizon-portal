@@ -13,6 +13,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { unstable_rethrow } from "next/navigation";
 import { z } from "zod";
+import { createValidationErrorResponse } from "@/lib/validations/common";
 import { SESSION_COOKIE_NAME } from "@/lib/auth/session";
 import { getAuthenticatedUserFromToken } from "@/lib/auth/user";
 import { processAssistantMessage } from "@/lib/assistant/assistant-service";
@@ -49,19 +50,16 @@ export async function POST(request: NextRequest) {
     try {
       rawBody = await request.json();
     } catch {
-      return NextResponse.json(
-        { error: "Invalid JSON request body." },
-        { status: 400, headers: NO_CACHE_HEADERS }
+      return createValidationErrorResponse(
+        "Invalid JSON request body.",
+        undefined,
+        NO_CACHE_HEADERS
       );
     }
 
     const validationResult = ChatRequestSchema.safeParse(rawBody);
     if (!validationResult.success) {
-      const firstError = validationResult.error.issues[0]?.message || "Invalid message format.";
-      return NextResponse.json(
-        { error: firstError },
-        { status: 400, headers: NO_CACHE_HEADERS }
-      );
+      return createValidationErrorResponse(validationResult.error, undefined, NO_CACHE_HEADERS);
     }
 
     const { message } = validationResult.data;

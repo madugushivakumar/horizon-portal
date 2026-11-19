@@ -17,6 +17,7 @@ import {
   getActorSnapshot,
   logEmployeeDeactivation,
 } from "@/lib/audit/audit-logger";
+import { idParamSchema, createValidationErrorResponse } from "@/lib/validations/common";
 
 const NO_CACHE_HEADERS = {
   "Cache-Control": "private, no-cache, no-store, must-revalidate",
@@ -65,7 +66,11 @@ export async function POST(request: NextRequest, context: RouteContext) {
     }
 
     const { id: rawId } = await context.params;
-    const employeeId = decodeURIComponent(rawId || "").trim();
+    const idValidation = idParamSchema.safeParse(rawId);
+    if (!idValidation.success) {
+      return createValidationErrorResponse(idValidation.error, undefined, NO_CACHE_HEADERS);
+    }
+    const employeeId = decodeURIComponent(idValidation.data).trim();
 
     const employee = await prisma.employee.findUnique({
       where: { id: employeeId },

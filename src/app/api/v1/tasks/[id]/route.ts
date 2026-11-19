@@ -19,6 +19,7 @@ import { prisma } from "@/lib/prisma";
 import { SESSION_COOKIE_NAME } from "@/lib/auth/session";
 import { getAuthenticatedUserFromToken } from "@/lib/auth/user";
 import { taskStatusUpdateSchema } from "@/lib/validations/task";
+import { createValidationErrorResponse } from "@/lib/validations/common";
 import {
   canUserModifyTasks,
   getTaskRoleScope,
@@ -59,9 +60,10 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     // 3. Validate task identifier parameter
     const { id: rawId } = await context.params;
     if (!rawId || typeof rawId !== "string" || rawId.trim().length === 0) {
-      return NextResponse.json(
-        { error: "Invalid task identifier provided." },
-        { status: 400, headers: NO_CACHE_HEADERS }
+      return createValidationErrorResponse(
+        "Invalid task identifier provided.",
+        undefined,
+        NO_CACHE_HEADERS
       );
     }
     const taskId = decodeURIComponent(rawId).trim();
@@ -71,19 +73,16 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     try {
       rawBody = await request.json();
     } catch {
-      return NextResponse.json(
-        { error: "Invalid JSON payload in request body." },
-        { status: 400, headers: NO_CACHE_HEADERS }
+      return createValidationErrorResponse(
+        "Invalid JSON payload in request body.",
+        undefined,
+        NO_CACHE_HEADERS
       );
     }
 
     const parsedBody = taskStatusUpdateSchema.safeParse(rawBody);
     if (!parsedBody.success) {
-      const firstError = parsedBody.error.issues[0]?.message || "Invalid status update payload.";
-      return NextResponse.json(
-        { error: firstError },
-        { status: 400, headers: NO_CACHE_HEADERS }
-      );
+      return createValidationErrorResponse(parsedBody.error, undefined, NO_CACHE_HEADERS);
     }
 
     const { status: newStatus, expectedVersion } = parsedBody.data;

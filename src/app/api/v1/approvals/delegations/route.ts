@@ -12,6 +12,7 @@ import { getAuthenticatedUserFromToken } from "@/lib/auth/user";
 import { validateDelegationChain } from "@/lib/leave/approval-service";
 import { getActorSnapshot, generateAuditEventId } from "@/lib/audit/audit-logger";
 import { managerDelegationSchema } from "@/lib/validations/leave";
+import { createValidationErrorResponse } from "@/lib/validations/common";
 
 const NO_CACHE_HEADERS = {
   "Cache-Control": "private, no-cache, no-store, must-revalidate",
@@ -134,21 +135,16 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json().catch(() => null);
     if (!body || typeof body !== "object") {
-      return NextResponse.json(
-        { error: "Invalid request payload." },
-        { status: 400, headers: NO_CACHE_HEADERS }
+      return createValidationErrorResponse(
+        "Invalid request payload.",
+        undefined,
+        NO_CACHE_HEADERS
       );
     }
 
     const validation = managerDelegationSchema.safeParse(body);
     if (!validation.success) {
-      const fieldErrors = validation.error.flatten().fieldErrors;
-      const firstErrorMessage =
-        validation.error.issues[0]?.message || "Validation failed for delegation.";
-      return NextResponse.json(
-        { error: firstErrorMessage, details: fieldErrors },
-        { status: 400, headers: NO_CACHE_HEADERS }
-      );
+      return createValidationErrorResponse(validation.error, undefined, NO_CACHE_HEADERS);
     }
 
     const { managerId: requestedManagerId, actingManagerId, startDate, endDate, reason } = validation.data;

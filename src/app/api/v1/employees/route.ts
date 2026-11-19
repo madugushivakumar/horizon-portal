@@ -13,6 +13,7 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { DirectoryApiResponse, SafeEmployeeSummary } from "@/types/employee";
 import { employeeDirectoryQuerySchema } from "@/lib/validations/directory";
+import { createValidationErrorResponse } from "@/lib/validations/common";
 
 export async function GET(request: NextRequest) {
   try {
@@ -27,12 +28,7 @@ export async function GET(request: NextRequest) {
     });
 
     if (!queryValidation.success) {
-      const fieldErrors = queryValidation.error.flatten().fieldErrors;
-      const firstError = queryValidation.error.issues[0]?.message || "Invalid query parameters.";
-      return NextResponse.json(
-        { error: firstError, details: fieldErrors },
-        { status: 400 }
-      );
+      return createValidationErrorResponse(queryValidation.error);
     }
 
     const { search, department, page, pageSize } = queryValidation.data;
