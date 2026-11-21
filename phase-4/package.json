@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build --webpack",
-    "build:prod": "prisma generate --schema=prisma/schema.postgresql.prisma && next build --webpack",
+    "build:prod": "prisma generate --schema=prisma/schema.prisma && prisma generate --schema=prisma/schema.postgresql.prisma && next build --webpack",
     "start": "next start",
     "lint": "eslint",
     "prisma:generate": "prisma generate --schema=prisma/schema.prisma",
@@ -83,5 +83,12 @@
     "prisma": "^6.19.3",
     "tsx": "^4.23.15",
     "typescript": "^5"
+  },
+  "allowScripts": {
+    "@prisma/client@6.19.3": true,
+    "@prisma/engines@6.19.3": true,
+    "esbuild@0.28.2": true,
+    "prisma@6.19.3": true,
+    "unrs-resolver@1.12.2": true
   }
 }
