@@ -1,11 +1,11 @@
 # Aura Workforce — Horizon Portal
 
-> **Aura Workforce by Growmar** — Consolidated Master Repository (Phases 1–3 Complete)  
-> **Repository:** [`https://github.com/madugushivakumar/horizon-portal`](https://github.com/madugushivakumar/horizon-portal)  
-> **Student / Lead Full-Stack Architect:** Madugu Shiva Kumar  
-> **Engineering Track:** Full Stack Development  
-> **Release Tags:** `phase-1` (Commit: `c666991`) | `phase-2` (Commit: `ac72469`) | `phase-3` (Commit: `57ebcba`)  
-> **Governing HEAD:** `725e47b0b036420bf544d108d886cc7bbcfae587`  
+> **Aura Workforce by Growmar** — Consolidated Master Repository (Phases 1–3 Complete)
+> **Repository:** [`https://github.com/madugushivakumar/horizon-portal`](https://github.com/madugushivakumar/horizon-portal)
+> **Student / Lead Full-Stack Architect:** Madugu Shiva Kumar
+> **Engineering Track:** Full Stack Development
+> **Release Tags:** `phase-1` (Commit: `c666991`) | `phase-2` (Commit: `ac72469`) | `phase-3` (Commit: `57ebcba`) | `phase-4` (Release Target: `v1.0.0`)
+> **Governing HEAD:** `725e47b0b036420bf544d108d886cc7bbcfae587`
 > **Release Classification:** **`NOT APPROVED FOR PRODUCTION`** *(Educational Internship Build)*
 
 ---
@@ -73,18 +73,22 @@ horizon-portal/
 │   ├── FullStack_MaduguShivaKumar_Phase3_Report.pdf # Final Phase 3 audit report
 │   └── README.md                           # Phase 3 architecture & verification guide
 │
-├── phase-4/                                # Phase 4: Enterprise Production Readiness (Placeholder)
-│   └── README.md                           # Placeholder & planned enterprise scope
+├── phase-4/                                # Phase 4: Enterprise Release & Governance (Days 16–20 + Final Challenge)
+│   ├── src/                                # HR Assistant, rate limits, WCAG a11y, Unified Approvals
+│   ├── prisma/                             # Dual schemas (SQLite & PostgreSQL) + migrations (27 models)
+│   ├── scripts/                            # Phase 4 test suites (Assistant, Zod 422, security, a11y, approvals)
+│   ├── tests/                              # Playwright E2E browser automation test suites
+│   ├── docs/                               # Phase 4 architecture, security, handover & runbooks
+│   ├── reports/                            # Phase 4 & Consolidated audit PDFs, visual evidence
+│   ├── FullStack_MaduguShivaKumar_Phase4_Report.pdf # Final Phase 4 audit report (3 pages)
+│   ├── DESIGN_NOTE.md                      # Corporate Expense Authorization architecture
+│   ├── RELEASE_NOTES.md                    # Formal v1.0.0 production release notes
+│   └── README.md                           # Phase 4 architecture & verification guide
 │
-├── src/                                    # Active unified application source code
-│   ├── app/                                # Next.js App Router (all pages & API routes)
-│   ├── components/                         # Design system & feature UI components
-│   ├── lib/                                # Utilities, auth, reconciliation engine, security
-│   └── types/                              # Shared TypeScript interfaces & types
-├── prisma/                                 # Active Prisma database models & migrations
-├── reports/                                # Master visual evidence screenshot directory
-├── scripts/                                # Master test runner & verification scripts
-└── backups/                                # Cryptographic pre-consolidation backups
+├── 03_Data_Pack/                           # Baseline enterprise JSON datasets
+├── 04_Evidence_Pack/                       # Centralized evidence submission templates & chain of custody
+├── backups/                                # Cryptographic pre-consolidation audit database backups
+└── docs/                                   # Repository-wide governance & forensic documentation
 ```
 
 ---
@@ -291,26 +295,71 @@ High-resolution visual evidence is systematically archived across the repository
 - **Master Root Evidence:** `reports/`
 
 ### Formal PDF Audit Reports
-- **Phase 1 Final Report:** [`FullStack_MaduguShivaKumar_Phase1_Report.pdf`](./FullStack_MaduguShivaKumar_Phase1_Report.pdf)
-- **Phase 2 Final Report:** [`FullStack_MaduguShivaKumar_Phase2_Report.pdf`](./FullStack_MaduguShivaKumar_Phase2_Report.pdf)
-- **Phase 3 Final Report:** [`FullStack_MaduguShivaKumar_Phase3_Report.pdf`](./FullStack_MaduguShivaKumar_Phase3_Report.pdf)
+- **Phase 1 Final Report:** [`phase-1/FullStack_MaduguShivaKumar_Phase1_Report.pdf`](./phase-1/FullStack_MaduguShivaKumar_Phase1_Report.pdf)
+- **Phase 2 Final Report:** [`phase-2/FullStack_MaduguShivaKumar_Phase2_Report.pdf`](./phase-2/FullStack_MaduguShivaKumar_Phase2_Report.pdf)
+- **Phase 3 Final Report:** [`phase-3/FullStack_MaduguShivaKumar_Phase3_Report.pdf`](./phase-3/FullStack_MaduguShivaKumar_Phase3_Report.pdf)
+- **Phase 4 Final Report:** [`phase-4/FullStack_MaduguShivaKumar_Phase4_Report.pdf`](./phase-4/FullStack_MaduguShivaKumar_Phase4_Report.pdf)
+- **Consolidated Final Report:** [`phase-4/reports/consolidated/Horizon_Portal_Consolidated_Project_Report.pdf`](./phase-4/reports/consolidated/Horizon_Portal_Consolidated_Project_Report.pdf)
 
 ---
 
-## 16. Phase 4 Placeholder: Enterprise Scale & Production Readiness
+## 16. Phase 4 Overview: Enterprise Release & Governance (Days 16–20 + Final Challenge)
 
-> **Status:** Pending Corporate Release & Gate 1 Authorization  
-> **Target Timeline:** Post-Phase 3 Review  
+> **Status:** Completed & Release-Candidate Verified (`v1.0.0`)
+> **Timeline:** Days 16–20 + Corporate Expense Authorization Final Challenge
+> **Documentation:** [`phase-4/README.md`](./phase-4/README.md) | Release Notes: [`phase-4/RELEASE_NOTES.md`](./phase-4/RELEASE_NOTES.md)
 
-### Planned Phase 4 Enterprise Scope
-1. **Gate 1 Corporate Governance Ratification:** Formal sign-off on Board Delegation Charter and Executive Financial Policies A–E.
-2. **Production Database Migration:** Rehearsal and execution of migration from local SQLite (`dev.db`) to AWS Aurora Serverless v2 PostgreSQL.
-3. **Stage 4B Technical Remediation:** Maker-Checker null-preparer bypass hardening and dual-engine BigInt consolidation.
-4. **Stage 5 Operational Readiness:** Blue-Green zero-downtime deployment, automated DR failover drill (< 4h RTO), real-time monitoring, and external penetration audit.
+### Key Milestones Delivered:
+1. **Day 16 — HR Assistant Chatbot:** Intelligent conversational widget with role-isolated policy/balance queries and statistical small-cell suppression ($< 5$).
+2. **Day 17 — Hosted Cloud PostgreSQL:** Dual-engine architecture (`schema.prisma` SQLite local dev; `schema.postgresql.prisma` Neon Cloud PostgreSQL), automated migrations, and connection pooling.
+3. **Day 18 — API Security & Hardening:** Distributed Upstash Redis sliding-window rate limiting, HTTP 422 standard Zod validation, IDOR prevention, and strict Content Security Policy.
+4. **Day 19 — Responsive & Accessible UX:** WCAG 2.1 AA compliant keyboard navigation, 44×44px touch targets, visible focus rings, and responsive mobile-first layouts.
+5. **Day 20 — End-to-End Testing & Handover:** Playwright browser automation suites across all core flows, release governance matrices, and owner handover runbooks.
+6. **Final Challenge — Corporate Expense Authorization & Unified Approvals:** Dedicated `CorporateExpenseAuthorization` domain, independent approval workflows, and centralized `UnifiedApprovalCenter` with OCC concurrency controls.
 
 ---
 
-## 17. License & Compliance Notice
+## 17. Independent Phase Execution Guide
 
-Copyright &copy; 2026 Growmar — Aura Workforce. All rights reserved.  
+Each phase is architected as an independent, self-contained project directory:
+
+```bash
+# -------------------------------------------------------------
+# Running Phase 1 (Foundation: Auth, Navigation, Directory)
+# -------------------------------------------------------------
+cd phase-1
+npm install
+npm run dev
+
+# -------------------------------------------------------------
+# Running Phase 2 (Self-Service: Leaves, Payslips, Approvals)
+# -------------------------------------------------------------
+cd phase-2
+npm install
+npm run dev
+
+# -------------------------------------------------------------
+# Running Phase 3 (Teams & Insight: Payroll, Finance, Kanban)
+# -------------------------------------------------------------
+cd phase-3
+npm install
+npm run dev
+
+# -------------------------------------------------------------
+# Running Phase 4 (Enterprise: Assistant, Security, Unified Approvals)
+# -------------------------------------------------------------
+cd phase-4
+npm install
+cp .env.example .env
+npx prisma generate
+npx prisma migrate deploy
+npm run db:seed
+npm run dev
+```
+
+---
+
+## 18. License & Compliance Notice
+
+Copyright &copy; 2026 Growmar — Aura Workforce. All rights reserved.
 This software is developed for technical review and educational evaluation. It remains classified as **`NOT APPROVED FOR PRODUCTION`**.
