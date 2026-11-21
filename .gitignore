@@ -50,3 +50,7 @@ yarn-error.log*
 next-env.d.ts
 
 /src/generated/
+# Local sensitive artifacts - never publish
+backups/
+cookies.txt
+*.cookie
