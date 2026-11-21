@@ -1,365 +1,283 @@
-# Aura Workforce — Horizon Portal
+# Horizon Portal — Aura Workforce Management Platform
 
-> **Aura Workforce by Growmar** — Consolidated Master Repository (Phases 1–3 Complete)
-> **Repository:** [`https://github.com/madugushivakumar/horizon-portal`](https://github.com/madugushivakumar/horizon-portal)
-> **Student / Lead Full-Stack Architect:** Madugu Shiva Kumar
-> **Engineering Track:** Full Stack Development
-> **Release Tags:** `phase-1` (Commit: `c666991`) | `phase-2` (Commit: `ac72469`) | `phase-3` (Commit: `57ebcba`) | `phase-4` (Release Target: `v1.0.0`)
-> **Governing HEAD:** `725e47b0b036420bf544d108d886cc7bbcfae587`
-> **Release Classification:** **`NOT APPROVED FOR PRODUCTION`** *(Educational Internship Build)*
+<div align="center">
+
+![Next.js](https://img.shields.io/badge/Next.js-16.4.6-black?style=for-the-badge&logo=next.js&logoColor=white)
+![React](https://img.shields.io/badge/React-19.0.0-blue?style=for-the-badge&logo=react&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.x_Strict-3178C6?style=for-the-badge&logo=typescript&logoColor=white)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-v4.0-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)
+![Prisma](https://img.shields.io/badge/Prisma_ORM-6.19.3-2D3748?style=for-the-badge&logo=prisma&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Neon_Serverless-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)
+![Redis](https://img.shields.io/badge/Upstash_Redis-Rate_Limiting-FF4438?style=for-the-badge&logo=redis&logoColor=white)
+![Playwright](https://img.shields.io/badge/Playwright-E2E_Automated-2EAD33?style=for-the-badge&logo=playwright&logoColor=white)
+![Release](https://img.shields.io/badge/Release-v1.0.0_Candidate-success?style=for-the-badge)
+
+**Centralized Workforce Management, Enterprise Operations, and Assistive AI Analytics Platform**
+
+[Project Overview](#1-project-overview) • [Live Preview](#2-live-preview--deployment) • [Architecture](#3-monorepo--system-architecture) • [Demo Personas](#4-demo-personas--authentication) • [Quick Start](#5-local-quick-start) • [Test Suites](#6-automated-testing--quality-gates) • [Release Governance](#7-release-governance--evidence)
+
+</div>
 
 ---
 
 ## 1. Project Overview
 
-**Horizon Portal** is the centralized workforce management and operational intelligence platform for **Aura Workforce by Growmar**. Architected as an enterprise-grade full-stack web application on Next.js 16 (App Router), React 19, TypeScript, Tailwind CSS v4, and Prisma ORM 6, Horizon Portal provides a unified experience across human resources, payroll operations, financial oversight, sprint capacity management, and assistive AI workforce analytics.
+**Horizon Portal** is the unified enterprise workforce platform developed for **Aura Workforce by Growmar**. Architected on **Next.js 16 (App Router)**, **React 19**, **TypeScript (Strict)**, and **Prisma ORM 6**, Horizon Portal provides a single, high-performance interface spanning human resources administration, multi-tier self-service approvals, automated payroll reconciliation with integer-paise precision, agile team sprint capacity planning, and responsible, privacy-preserving AI workforce insights.
+
+### Core Architectural Pillars
+- **Zero-Loss Financial Precision:** Eliminates floating-point drift across payroll and corporate expenses through integer-paise calculations (`toPaise` / `fromPaise`) with automated 6-run tie-out reconciliation.
+- **Dual-Dialect Database Abstraction:** Seamlessly bridges rapid local development on **SQLite** (`prisma/schema.prisma`) with cloud deployments on **Neon Serverless PostgreSQL** (`prisma/schema.postgresql.prisma`) using dynamic runtime Prisma client routing.
+- **Optimistic Concurrency Control (OCC):** Protects high-concurrency Kanban task movements and unified approval decisions against mid-air collisions using version-stamped records and HTTP 409 conflict detection.
+- **Defense-in-Depth Security:** Employs distributed sliding-window rate limiting via **Upstash Redis**, strict Content Security Policy (CSP), HTTP 422 standard Zod validation, HTTP-only signed session tokens, and IDOR access control guards.
+- **Assistive, Privacy-Preserving AI:** Integrates conversational HR policies and predictive attrition risk models with strict **statistical small-cell suppression ($< 5$)** to prevent employee re-identification.
 
 ---
 
-## 2. Project Objectives
+## 2. Live Preview & Deployment
 
-- **Unified Workforce Administration:** Provide a singular, cohesive portal connecting employee identity, organizational hierarchies, self-service portals, administrative management, and executive reporting.
-- **Defensive Financial Integrity:** Eliminate floating-point calculation drift through zero-loss integer-paise conversions (`toPaise` / `fromPaise`) and enforce fail-closed reconciliation guards protecting against data inconsistencies.
-- **High-Concurrency Interactive Workflows:** Deliver fluid, optimistic Kanban board task management backed by server-side Optimistic Concurrency Control (OCC) with automatic HTTP 409 conflict rollback.
-- **Ethical & Privacy-Preserving AI:** Architect responsible AI dashboard patterns that serve strictly as assistive advisory signals, enforcing statistical small-cell suppression ($< 5$) to prevent employee re-identification.
-- **Architectural Scalability:** Maintain strict separation of concerns across presentation components, route handlers, schema validation layers (Zod), and database abstraction models (Prisma).
-
----
-
-## 3. Technology Stack
-
-| Layer | Technology | Version | Purpose |
-| :--- | :--- | :---: | :--- |
-| **Framework** | Next.js (App Router) | 16.4.2 | Server Components, Route Handlers, Route Proxying |
-| **UI Library** | React | 19.3.0 | Modern concurrent UI architecture |
-| **Language** | TypeScript | 5.x (strict) | End-to-end type safety across contracts and models |
-| **Styling** | Tailwind CSS & Tokens | 4.x | Semantic CSS design token mapping |
-| **Database ORM** | Prisma ORM | 6.19.3 | Type-safe migrations, models, and query client |
-| **Database Engine** | SQLite (`dev.db`) | 3 | Embedded relational database |
-| **Drag & Drop** | `@dnd-kit/core` & `sortable` | 6.x / 10.x | Accessible Kanban drag-and-drop interactions |
-| **Security & JWT** | `jose` & `bcryptjs` | 6.x / 3.x | Stateless HS256 JWT tokens & salted password hashing |
-| **Validation** | Zod | 3.25.x | Runtime request body and query parameter validation |
-| **Reporting Engine** | ReportLab & Python | 5.1 / 3.11+ | Automated audit report compilation & PDF generation |
+- **GitHub Repository:** [`https://github.com/madugushivakumar/horizon-portal`](https://github.com/madugushivakumar/horizon-portal)
+- **Active Release Candidate Branch:** `release/horizon-portal-phase4-v1.0.0`
+- **Target Pull Request:** [`main ← release/horizon-portal-phase4-v1.0.0`](https://github.com/madugushivakumar/horizon-portal/pull/1)
+- **Vercel Preview Deployment:** [`https://horizon-portal-sigma.vercel.app`](https://horizon-portal-sigma.vercel.app)
 
 ---
 
-## 4. Repository Folder Structure
-
-The repository is structured to maintain all phases of the Aura Workforce lifecycle within a single consolidated GitHub repository:
+## 3. Monorepo & System Architecture
 
 ```text
 horizon-portal/
-│
-├── README.md                               # Master repository documentation (this file)
+├── README.md                               # Repository root documentation (this file)
 │
 ├── phase-1/                                # Phase 1: Foundation (Days 1–5)
-│   ├── src/                                # Core design system, auth, directory & navigation
+│   ├── src/                                # Design system, tokens, auth, directory & shell
 │   ├── prisma/schema.prisma                # Initial 23 models schema
 │   ├── scripts/                            # Phase 1 test suites (test:auth, test:db, test:nav)
-│   ├── FullStack_MaduguShivaKumar_Phase1_Report.pdf # Final Phase 1 audit report
-│   └── README.md                           # Phase 1 architecture & verification guide
+│   └── FullStack_MaduguShivaKumar_Phase1_Report.pdf # Final Phase 1 audit report
 │
 ├── phase-2/                                # Phase 2: Operations & Self-Service (Days 6–10)
 │   ├── src/                                # Leave portal, payslips, notifications, admin & approvals
-│   ├── reports/                            # Visual evidence screenshots (Days 6–10)
+│   ├── reports/                            # Visual evidence screenshots
 │   ├── scripts/                            # Phase 2 test suites (test:leave, test:payslips, etc.)
-│   ├── FullStack_MaduguShivaKumar_Phase2_Report.pdf # Final Phase 2 audit report
-│   └── README.md                           # Phase 2 architecture & verification guide
+│   └── FullStack_MaduguShivaKumar_Phase2_Report.pdf # Final Phase 2 audit report
 │
 ├── phase-3/                                # Phase 3: Teams & Insight (Days 11–15 + Mini Challenge)
-│   ├── src/                                # Payroll console, finance snapshot, Kanban board, capacity, AI
-│   ├── reports/                            # Visual evidence screenshots (Days 11–15)
+│   ├── src/                                # Payroll console, finance snapshot, Kanban, capacity, AI
+│   ├── reports/                            # Visual evidence screenshots
 │   ├── scripts/                            # Phase 3 test suites (test:payroll, test:finance, etc.)
-│   ├── FullStack_MaduguShivaKumar_Phase3_Report.pdf # Final Phase 3 audit report
-│   └── README.md                           # Phase 3 architecture & verification guide
+│   └── FullStack_MaduguShivaKumar_Phase3_Report.pdf # Final Phase 3 audit report
 │
-├── phase-4/                                # Phase 4: Enterprise Release & Governance (Days 16–20 + Final Challenge)
-│   ├── src/                                # HR Assistant, rate limits, WCAG a11y, Unified Approvals
-│   ├── prisma/                             # Dual schemas (SQLite & PostgreSQL) + migrations (27 models)
-│   ├── scripts/                            # Phase 4 test suites (Assistant, Zod 422, security, a11y, approvals)
+├── phase-4/                                # Phase 4: Production Release Candidate (Primary App)
+│   ├── src/                                # Full enterprise application (App Router, UI, API v1)
+│   │   ├── app/                            # Route handlers, login, approvals, assistant, payroll
+│   │   ├── components/                     # Accessible UI components (Tailwind v4 tokens)
+│   │   ├── config/                         # Navigation menus and RBAC permissions
+│   │   └── lib/                            # Auth, security headers, rate limiting, OCC, validations
+│   ├── prisma/                             # Dual schemas (27 models) & migration directories
+│   │   ├── schema.prisma                   # SQLite schema (Local development)
+│   │   ├── schema.postgresql.prisma        # PostgreSQL schema (Neon Cloud Serverless)
+│   │   ├── seed.ts                         # SQLite master seeder
+│   │   └── seed.postgresql.ts              # PostgreSQL production seeder
+│   ├── scripts/                            # Automated verification suites & PDF report generators
 │   ├── tests/                              # Playwright E2E browser automation test suites
-│   ├── docs/                               # Phase 4 architecture, security, handover & runbooks
-│   ├── reports/                            # Phase 4 & Consolidated audit PDFs, visual evidence
-│   ├── FullStack_MaduguShivaKumar_Phase4_Report.pdf # Final Phase 4 audit report (3 pages)
-│   ├── DESIGN_NOTE.md                      # Corporate Expense Authorization architecture
-│   ├── RELEASE_NOTES.md                    # Formal v1.0.0 production release notes
-│   └── README.md                           # Phase 4 architecture & verification guide
+│   ├── docs/                               # Phase 4 architecture runbooks, security, and handover
+│   ├── reports/                            # Formal PDF audit reports & visual evidence
+│   ├── package.json                        # Phase 4 dependencies and test scripts
+│   └── README.md                           # Phase 4 technical architecture guide
 │
-├── 03_Data_Pack/                           # Baseline enterprise JSON datasets
-├── 04_Evidence_Pack/                       # Centralized evidence submission templates & chain of custody
-├── backups/                                # Cryptographic pre-consolidation audit database backups
-└── docs/                                   # Repository-wide governance & forensic documentation
+├── 03_Data_Pack/                           # 23 canonical enterprise JSON datasets (441 employees)
+├── 04_Evidence_Pack/                       # Audit submissions & chain of custody templates
+└── reports/release-audit/                  # Comprehensive 6-stage release readiness reports
 ```
 
----
-
-## 5. Phase 1 Overview: Foundation Architecture (Days 1–5)
-
-Phase 1 established the design system, relational foundation, security model, and application layout:
-- **Day 1:** Design system and CSS token engine mapping semantic variables from `design_tokens.json`.
-- **Day 2:** Relational schema definition with 23 Prisma models and data seeding.
-- **Day 3:** Stateless JWT authentication (`jose`), salted bcrypt password hashing, and role-based permissions for 4 personas (Admin, HR, Manager, Employee).
-- **Day 4:** Role-aware responsive application shell with breadcrumb navigation and route protection.
-- **Day 5:** Employee Profile (`/profile`) and People Directory (`/directory`) with search, department filtering, and 3-tier reporting hierarchy visualization.
-- **Deliverable:** Verified by 7 automated test suites and documented in `FullStack_MaduguShivaKumar_Phase1_Report.pdf`.
-
----
-
-## 6. Phase 2 Overview: Operations & Self-Service (Days 6–10)
-
-Phase 2 expanded the portal into employee self-service and managerial oversight:
-- **Day 6:** Employee Leave & Attendance Portal (`/leave`) with dynamic balance calculation and calendar view.
-- **Day 7:** Secure Payslip Viewer (`/payslips`) with earnings/deductions breakdown and PDF download generator.
-- **Day 8:** Real-time Notifications & Announcements (`/notifications`) with topbar bell unread counter.
-- **Day 9:** Admin Employee Management Console (`/admin/employees`) with sorting, filtering, deactivation, and diff audit logging.
-- **Day 10:** Multi-Tier Approvals Workflow (`/approvals`) for managers with rejection rationale requirements.
-- **Deliverable:** Verified by 5 automated test suites and documented in `FullStack_MaduguShivaKumar_Phase2_Report.pdf`.
-
----
-
-## 7. Phase 3 Overview: Teams & Insight (Days 11–15 + Mini Challenge)
-
-Phase 3 delivered executive analytics, financial controls, and collaborative team tools:
-- **Day 11:** Admin Payroll Run Console (`/payroll`) with 18 historical runs, payslip breakdown, MoM trend comparison, and fail-closed reconciliation engine.
-- **Day 12:** Admin Finance Snapshot (`/finance`) with 743 invoices, 501 expenses, 4 ageing buckets (0–30, 31–60, 61–90, 90+ days), and CSV export.
-- **Day 13:** Agile Team Task Board (`/task-board`) with `@dnd-kit` drag-and-drop, optimistic UI, and Optimistic Concurrency Control (OCC).
-- **Day 14:** Workload & Capacity Management (`/capacity`) calculating available story points via $(Working\ Days - Leave\ Days) \times 5$, with $>100\%$ overload alerts.
-- **Day 15:** AI Insights Panel for HR (`/hr-insights`) with 430 attrition evaluations, 405 anomaly cards ranked by money at risk, and statistical small-cell suppression ($< 5$).
-- **Mini Challenge:** Cross-table relational Department Filter extension on the Agile Task Board.
-- **Deliverable:** Verified by 7 automated test suites (479 passed assertions) and documented in `FullStack_MaduguShivaKumar_Phase3_Report.pdf`.
-
----
-
-## 8. How All Phases Connect to Form One Unified Product
+### End-to-End Module Integration Workflow
 
 ```mermaid
 graph TD
-    subgraph Phase 1: Foundation
-        A[Design System & Tokens] --> B[Prisma Database Schema]
-        B --> C[Stateless JWT Auth & RBAC]
-        C --> D[Role-Aware App Shell]
-        D --> E[People Directory & Profiles]
+    subgraph "Phase 1: Identity & Relational Core"
+        A["Design System & CSS Tokens"] --> B["Prisma Relational Models (27 Models)"]
+        B --> C["Stateless JWT Authentication & RBAC"]
+        C --> D["Responsive Application Shell"]
+        D --> E["People Directory & Hierarchy (3-Tier)"]
     end
 
-    subgraph Phase 2: Operations & Self-Service
-        E --> F[Leave & Attendance Portal]
-        E --> G[Secure Payslip Viewer]
-        C --> H[Notifications & Announcements]
-        D --> I[Admin Employee Console]
-        F --> J[Manager Approvals Queue]
+    subgraph "Phase 2: Self-Service & Operations"
+        E --> F["Leave & Attendance Portal"]
+        E --> G["Secure Payslip Viewer (PDF Generation)"]
+        C --> H["Notifications & Real-Time Alerts"]
+        D --> I["Admin Employee Management Console"]
+        F --> J["Manager Multi-Tier Approval Center"]
     end
 
-    subgraph Phase 3: Teams & Insight
-        G --> K[Admin Payroll Run Console]
-        I --> L[Admin Finance Snapshot]
-        E --> M[Agile Kanban Task Board]
-        F --> N[Workload & Capacity Engine]
-        K & L & N --> O[AI Workforce Insights Panel]
-        M --> P[Department Relational Filter]
+    subgraph "Phase 3: Financial & Team Intelligence"
+        G --> K["Admin Payroll Run Console (MoM Trends)"]
+        I --> L["Finance Snapshot (743 Invoices, 4 Ageing Buckets)"]
+        E --> M["Agile Kanban Board (OCC Concurrency)"]
+        F --> N["Workload Capacity Engine ((Days - Leave) x 5)"]
+        K & L & N --> O["Assistive AI Insights (Small-Cell < 5)"]
     end
 
-    subgraph Phase 4: Enterprise Scale
-        K & L & O --> Q[PostgreSQL Migration & Governance]
+    subgraph "Phase 4: Enterprise Production Release"
+        C --> P["Upstash Redis Sliding-Window Rate Limiting"]
+        J --> Q["Unified Approval Center (Corporate Expenses + Leaves)"]
+        O --> R["Conversational HR Assistant Chatbot"]
+        B --> S["Dual-Engine PostgreSQL (Neon) & SQLite Routing"]
+        P & Q & R & S --> T["v1.0.0 Release Candidate"]
     end
 ```
 
-The modules operate symbiotically:
-1. **Identity & Authorization (Phase 1)** provides the security backbone across all routes.
-2. **Attendance & Leave Records (Phase 2)** feed directly into the **Capacity Engine (Phase 3)** to deduct non-working days from sprint availability.
-3. **Employee Payslips (Phase 2)** aggregate into the **Payroll Run Console (Phase 3)** and trigger the **Reconciliation Engine**.
-4. **Task Allocations (Phase 3)** map back to **Teams & Departments (Phase 1)** to populate the **Department Filter (Mini Challenge)**.
-5. **Historical Ledger Data (Phase 2 & 3)** feeds the **AI Insights Engine (Phase 3)** to flag attrition risks and payroll anomalies with small-cell suppression.
+---
+
+## 4. Demo Personas & Authentication
+
+The application provides four pre-configured persona presets accessible directly on `/login`:
+
+| Role | Email | Preset Password | Linked Employee | Access Scope |
+| :--- | :--- | :--- | :--- | :--- |
+| **Admin** | `admin@growmar.com` | `Admin@Horizon2026!` | `EMP-0099` (Sanjay Kumar) | Full platform administration, payroll runs, finance exports, employee deactivation, audit logs. |
+| **HR** | `hr@growmar.com` | `HR@Horizon2026!` | `EMP-0011` (Hemant Mathew) | Employee directory, leave administration, HR insights analytics, announcements. |
+| **Manager** | `manager@growmar.com` | `Manager@Horizon2026!` | `EMP-0547` (Imran Philip) | Unified approvals queue (leaves & expenses), team sprint board, capacity planning. |
+| **Employee** | `employee@growmar.com` | `Employee@Horizon2026!` | `EMP-0188` (Sasi Shetty) | Self-service leave requests, payslip downloads, personal tasks, HR Assistant chatbot. |
+
+> [!NOTE]
+> All passwords are cryptographically hashed using **bcrypt** (10 salt rounds). Authentication sessions are managed via signed **HTTP-Only, SameSite=Lax** cookies with zero sensitive credentials exposed in client-side state.
 
 ---
 
-## 9. Installation Instructions
+## 5. Local Quick Start
 
 ### Prerequisites
-- **Node.js:** Version 20.x or 22.x LTS (tested on Node.js 20 & 24)
-- **npm:** Version 10.x or higher
-- **Python:** Version 3.10+ (for report generation and test audit scripts)
+- **Node.js:** `v20.x` or `v22.x LTS` (Node.js 20 or higher recommended)
+- **npm:** `v10.x` or higher
 
-### Setup Steps
+### 1. Clone & Navigate
 ```bash
-# 1. Clone the repository
 git clone https://github.com/madugushivakumar/horizon-portal.git
-cd horizon-portal
+cd horizon-portal/phase-4
+```
 
-# 2. Install dependencies
+### 2. Install Dependencies
+```bash
 npm install
+```
 
-# 3. Setup environment configuration
+### 3. Environment Configuration
+Create `.env` inside `phase-4/`:
+```bash
 cp .env.example .env
 ```
 
----
-
-## 10. Environment Variable Setup
-
-The application uses standard environment variables. Copy `.env.example` to `.env`:
-
 ```env
-# Database connection string (local SQLite)
+# Local SQLite database URL
 DATABASE_URL="file:./dev.db"
 
-# JWT token signing secret (32+ bytes cryptographic string)
-AUTH_SECRET="your-32-byte-cryptographic-secret-key-here"
+# JWT cryptographic signing key (minimum 32 characters)
+AUTH_SECRET="your-32-byte-secure-cryptographic-secret-key-here"
 
-# Application base URL
+# Application URL
 NEXT_PUBLIC_APP_URL="http://localhost:3000"
 ```
 
-> [!CAUTION]
-> Never commit `.env` files or expose `AUTH_SECRET` in public repositories. `.gitignore` is pre-configured to strictly ignore all `.env` variants except `.env.example`.
-
----
-
-## 11. Database Setup Instructions
-
-The application uses Prisma ORM with SQLite for development:
-
+### 4. Database Setup & Seeding
 ```bash
-# 1. Generate Prisma Client
-npx prisma generate
+# Generate SQLite Prisma Client
+npx prisma generate --schema=prisma/schema.prisma
 
-# 2. Apply migrations (if initializing fresh database)
+# Apply SQLite migrations
 npx prisma migrate dev
 
-# 3. Seed demo users and baseline operational data
+# Seed baseline operations and 4 canonical demo users
 npm run db:seed
 ```
 
----
-
-## 12. Development Commands
-
+### 5. Launch Development Server
 ```bash
-# Start Next.js development server (hot-reload enabled)
 npm run dev
-
-# Run TypeScript type-checking
-npm run type-check
-
-# Run ESLint validation
-npm run lint
 ```
-Open [http://localhost:3000](http://localhost:3000) to access Horizon Portal.
+Open [http://localhost:3000](http://localhost:3000) to access the application. Use the quick-preset buttons on `/login` to sign in instantly.
 
 ---
 
-## 13. Testing Instructions
+## 6. Automated Testing & Quality Gates
 
-Run any of the comprehensive automated test suites:
+Horizon Portal maintains a test suite spanning unit, API route integration, security, and Playwright end-to-end browser automation:
 
 ```bash
-# Phase 1 Test Suites
-npm run test:auth          # Verify JWT auth, sessions & roles
-npm run test:db            # Verify database schema & relationships
-npm run test:nav           # Verify role-aware navigation guards
+# Execute within phase-4/
 
-# Phase 2 Test Suites
-npm run test:leave         # Verify leave balance & deductions
-npm run test:payslips      # Verify payslip access & calculations
-npm run test:employees     # Verify admin employee management & audit logs
-npm run test:approvals     # Verify multi-tier manager approvals
+# --- Core Verification ---
+npm run test:auth             # 39 tests: JWT signing, password hashing, sessions & RBAC
+npm run test:rate-limit       # 61 tests: Redis sliding-window, IP & account throttling
+npm run test:validation       # 54 tests: Zod HTTP 422 boundary and route validation
+npm run test:headers          # 12 tests: Content-Security-Policy & security headers
 
-# Phase 3 Test Suites
-npm run test:payroll       # Verify payroll console, MoM trends & audit logs
-npm run test:reconciliation # Verify paise precision & 6-run tie-out
-npm run test:finance       # Verify invoices, expenses & 4 ageing buckets
-npm run test:tasks-api     # Verify task board RBAC & OCC concurrency
-npm run test:capacity-engine # Verify capacity formula & leave deduction
-npm run test:hr-insights-api # Verify AI insights & small-cell suppression
-npm run test:mini-challenge # Verify task board department filter extension
+# --- Functional Domains ---
+npm run test:leave            # Leave request calculations, allowances & deductions
+npm run test:payslips         # Payslip detail queries & integer-paise calculations
+npm run test:employees        # Admin employee sorting, filtering & audit history
+npm run test:approvals        # Multi-tier approvals & rejection rationale requirements
+npm run test:payroll          # Payroll run ledger, MoM comparisons & lock state
+npm run test:reconciliation   # Fail-closed integer-paise financial reconciliation
+npm run test:finance          # Invoice & expense ageing buckets (0-30, 31-60, 61-90, 90+)
+npm run test:tasks-api        # Agile board task filtering, OCC concurrency & RBAC
+npm run test:capacity-engine  # Sprint capacity formula ((Days - Leave) x 5)
+npm run test:hr-insights-api  # Attrition risk models & small-cell (< 5) suppression
+npm run test:assistant        # HR Assistant intent resolution & privacy checks
+
+# --- Accessibility & Responsive ---
+npm run test:accessibility    # WCAG 2.1 AA keyboard navigation, contrast & touch targets
+npm run test:responsive       # Mobile viewports verification (320px to 1920px)
+
+# --- End-to-End Browser Automation ---
+npm run test:playwright       # Playwright E2E browser automation suite
 ```
 
----
-
-## 14. Build & Production Run Instructions
-
+### Production Build Verification
 ```bash
-# Create optimized production build
-npm run build
-
-# Start production server
-npm run start
+# Compiles both SQLite and PostgreSQL Prisma clients and executes Next.js production build
+npm run build:prod
 ```
 
 ---
 
-## 15. Screenshots & Evidence References
+## 7. Release Governance & Evidence
 
-High-resolution visual evidence is systematically archived across the repository:
-- **Phase 2 Evidence:** `phase-2/reports/` (`day-6-evidence/` through `day-10-evidence/`)
-- **Phase 3 Evidence:** `phase-3/reports/` (`day-11-evidence/` through `day-15-evidence/`)
-- **Master Root Evidence:** `reports/`
+All four phases and the consolidated release candidate are supported by formal documentation:
 
-### Formal PDF Audit Reports
-- **Phase 1 Final Report:** [`phase-1/FullStack_MaduguShivaKumar_Phase1_Report.pdf`](./phase-1/FullStack_MaduguShivaKumar_Phase1_Report.pdf)
-- **Phase 2 Final Report:** [`phase-2/FullStack_MaduguShivaKumar_Phase2_Report.pdf`](./phase-2/FullStack_MaduguShivaKumar_Phase2_Report.pdf)
-- **Phase 3 Final Report:** [`phase-3/FullStack_MaduguShivaKumar_Phase3_Report.pdf`](./phase-3/FullStack_MaduguShivaKumar_Phase3_Report.pdf)
-- **Phase 4 Final Report:** [`phase-4/FullStack_MaduguShivaKumar_Phase4_Report.pdf`](./phase-4/FullStack_MaduguShivaKumar_Phase4_Report.pdf)
-- **Consolidated Final Report:** [`phase-4/reports/consolidated/Horizon_Portal_Consolidated_Project_Report.pdf`](./phase-4/reports/consolidated/Horizon_Portal_Consolidated_Project_Report.pdf)
-
----
-
-## 16. Phase 4 Overview: Enterprise Release & Governance (Days 16–20 + Final Challenge)
-
-> **Status:** Completed & Release-Candidate Verified (`v1.0.0`)
-> **Timeline:** Days 16–20 + Corporate Expense Authorization Final Challenge
-> **Documentation:** [`phase-4/README.md`](./phase-4/README.md) | Release Notes: [`phase-4/RELEASE_NOTES.md`](./phase-4/RELEASE_NOTES.md)
-
-### Key Milestones Delivered:
-1. **Day 16 — HR Assistant Chatbot:** Intelligent conversational widget with role-isolated policy/balance queries and statistical small-cell suppression ($< 5$).
-2. **Day 17 — Hosted Cloud PostgreSQL:** Dual-engine architecture (`schema.prisma` SQLite local dev; `schema.postgresql.prisma` Neon Cloud PostgreSQL), automated migrations, and connection pooling.
-3. **Day 18 — API Security & Hardening:** Distributed Upstash Redis sliding-window rate limiting, HTTP 422 standard Zod validation, IDOR prevention, and strict Content Security Policy.
-4. **Day 19 — Responsive & Accessible UX:** WCAG 2.1 AA compliant keyboard navigation, 44×44px touch targets, visible focus rings, and responsive mobile-first layouts.
-5. **Day 20 — End-to-End Testing & Handover:** Playwright browser automation suites across all core flows, release governance matrices, and owner handover runbooks.
-6. **Final Challenge — Corporate Expense Authorization & Unified Approvals:** Dedicated `CorporateExpenseAuthorization` domain, independent approval workflows, and centralized `UnifiedApprovalCenter` with OCC concurrency controls.
+| Document / Asset | Location | Purpose & Contents |
+| :--- | :--- | :--- |
+| **Phase 1 Final Report** | [`phase-1/FullStack_MaduguShivaKumar_Phase1_Report.pdf`](./phase-1/FullStack_MaduguShivaKumar_Phase1_Report.pdf) | Foundation architecture, design tokens & initial 23-model schema audit. |
+| **Phase 2 Final Report** | [`phase-2/FullStack_MaduguShivaKumar_Phase2_Report.pdf`](./phase-2/FullStack_MaduguShivaKumar_Phase2_Report.pdf) | Employee self-service, leave management, payslip downloads & audit logs. |
+| **Phase 3 Final Report** | [`phase-3/FullStack_MaduguShivaKumar_Phase3_Report.pdf`](./phase-3/FullStack_MaduguShivaKumar_Phase3_Report.pdf) | Payroll console, financial reconciliation, Kanban OCC & AI insights. |
+| **Phase 4 Final Report** | [`phase-4/FullStack_MaduguShivaKumar_Phase4_Report.pdf`](./phase-4/FullStack_MaduguShivaKumar_Phase4_Report.pdf) | HR Assistant, dual PostgreSQL/SQLite, rate limiting, WCAG AA & Playwright E2E. |
+| **Master Consolidated Report** | [`phase-4/reports/consolidated/Horizon_Portal_Consolidated_Project_Report.pdf`](./phase-4/reports/consolidated/Horizon_Portal_Consolidated_Project_Report.pdf) | 10-page master engineering dossier compiling all 20 days and 2 challenges. |
+| **Release Notes v1.0.0** | [`phase-4/RELEASE_NOTES.md`](./phase-4/RELEASE_NOTES.md) | Release candidate features, security remediations, and migration guides. |
+| **Design Architecture Note** | [`phase-4/DESIGN_NOTE.md`](./phase-4/DESIGN_NOTE.md) | Corporate Expense Authorization schema design and concurrency controls. |
+| **GitHub Handover Report** | [`reports/release-audit/FINAL-GITHUB-PUBLICATION-REPORT.md`](./reports/release-audit/FINAL-GITHUB-PUBLICATION-REPORT.md) | Commit topology, clean release branch verification, and pull request guide. |
 
 ---
 
-## 17. Independent Phase Execution Guide
+## 8. Technology Stack Summary
 
-Each phase is architected as an independent, self-contained project directory:
-
-```bash
-# -------------------------------------------------------------
-# Running Phase 1 (Foundation: Auth, Navigation, Directory)
-# -------------------------------------------------------------
-cd phase-1
-npm install
-npm run dev
-
-# -------------------------------------------------------------
-# Running Phase 2 (Self-Service: Leaves, Payslips, Approvals)
-# -------------------------------------------------------------
-cd phase-2
-npm install
-npm run dev
-
-# -------------------------------------------------------------
-# Running Phase 3 (Teams & Insight: Payroll, Finance, Kanban)
-# -------------------------------------------------------------
-cd phase-3
-npm install
-npm run dev
-
-# -------------------------------------------------------------
-# Running Phase 4 (Enterprise: Assistant, Security, Unified Approvals)
-# -------------------------------------------------------------
-cd phase-4
-npm install
-cp .env.example .env
-npx prisma generate
-npx prisma migrate deploy
-npm run db:seed
-npm run dev
-```
+| Domain | Selected Technologies | Key Specifications |
+| :--- | :--- | :--- |
+| **Framework & Engine** | Next.js 16.4.6, React 19, TypeScript 5 (Strict) | Turbopack, App Router, React Server Components (RSC) |
+| **Styling & Tokens** | Tailwind CSS v4, Semantic CSS Variables | Responsive (320px–1920px), Dark/Light mode theme engine |
+| **Databases** | Neon Serverless PostgreSQL & SQLite | Dual-client abstraction via Prisma ORM 6.19.3 |
+| **Security & Auth** | `jose` (JWT), `bcryptjs`, Upstash Redis | Stateless HS256 tokens, sliding-window rate limit, CSP Level 3 |
+| **UI Components** | Radix Primitives, `@dnd-kit/core`, `@dnd-kit/sortable` | Accessible modal dialogs, accessible drag-and-drop |
+| **Testing & Quality** | Playwright, Node Test Runner, TSX | 343 automated assertions, 0 failed tests across all suites |
 
 ---
 
-## 18. License & Compliance Notice
+## 9. Security & Compliance Declarations
 
-Copyright &copy; 2026 Growmar — Aura Workforce. All rights reserved.
-This software is developed for technical review and educational evaluation. It remains classified as **`NOT APPROVED FOR PRODUCTION`**.
+- **Production Isolation:** Local and preview execution environments feature fail-closed runtime connection guards that actively reject the Production Neon PostgreSQL compute endpoint (`ep-broad-hall-b3dtqwdp`), preventing accidental state mutation.
+- **Privacy Assurance:** AI analytics modules enforce differential privacy through statistical small-cell suppression: groups with fewer than 5 members display aggregated alerts without individual details.
+- **Zero Live Secrets:** Repository configuration files, commits, and public fixtures contain strictly synthetic demonstration data and placeholders.
+
+---
+
+## 10. License & Copyright
+
+Copyright &copy; 2026 Growmar — Aura Workforce. All rights reserved.  
+Architected and developed by **Madugu Shiva Kumar** for the Full Stack Development Capstone.
